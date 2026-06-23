@@ -295,6 +295,64 @@
       text-transform: uppercase;
     }
 
+    .countdown-rec {
+      display: none;
+      grid-template-columns: minmax(120px, 0.55fr) 1fr;
+      gap: 16px;
+      align-items: center;
+      margin: 0 0 16px;
+      padding: 18px;
+      border: 2px solid #dedede;
+      border-radius: 28px;
+      background: var(--bianco);
+      box-shadow: var(--ombra);
+    }
+
+    .countdown-rec.visibile {
+      display: grid;
+    }
+
+    .count-numero {
+      min-height: 112px;
+      display: grid;
+      place-items: center;
+      border-radius: 24px;
+      background: var(--giallo);
+      color: var(--testo);
+      font-size: clamp(3rem, 9vw, 6rem);
+      line-height: 1;
+      font-weight: 950;
+      box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.08);
+    }
+
+    .countdown-rec.registra .count-numero {
+      background: var(--rosso);
+      color: var(--bianco);
+      animation: pulsa 760ms ease-in-out infinite;
+    }
+
+    .countdown-rec.chiusura .count-numero {
+      background: var(--blu);
+      color: var(--bianco);
+    }
+
+    .count-testo {
+      margin: 0;
+      color: var(--testo);
+      font-size: clamp(1.25rem, 3vw, 2.4rem);
+      line-height: 1.02;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .count-sotto {
+      margin-top: 8px;
+      color: #666;
+      font-size: 0.9rem;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
     .strumenti {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -558,6 +616,16 @@
       animation: pulsa 760ms ease-in-out infinite;
     }
 
+    .luce.attesa {
+      background: var(--giallo);
+      animation: pulsa 760ms ease-in-out infinite;
+    }
+
+    .luce.chiusura {
+      background: var(--blu);
+      box-shadow: 0 0 0 9px rgba(10, 132, 255, 0.2), inset 0 0 0 4px rgba(255, 255, 255, 0.8);
+    }
+
     .luce.suona {
       background: var(--verde);
       box-shadow: 0 0 0 9px rgba(52, 199, 89, 0.2), inset 0 0 0 4px rgba(255, 255, 255, 0.8);
@@ -800,6 +868,10 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
+      .countdown-rec {
+        grid-template-columns: 1fr;
+      }
+
       .sync-mic {
         grid-template-columns: 1fr;
       }
@@ -961,6 +1033,14 @@
 
     <p id="messaggio" class="messaggio">Pronto.</p>
 
+    <section id="countdownRec" class="countdown-rec" aria-live="polite">
+      <div id="countNumero" class="count-numero">4</div>
+      <div>
+        <p id="countTesto" class="count-testo">Preparati</p>
+        <div id="countSotto" class="count-sotto">La registrazione partirà sul prossimo giro</div>
+      </div>
+    </section>
+
     <section class="strumenti" aria-label="Progetto ed esportazione">
       <button id="aggiungiVoce" class="strumento aggiungi" type="button">+ Voce</button>
       <button id="salvaProgetto" class="strumento salva" type="button">Salva<br>progetto</button>
@@ -1058,6 +1138,10 @@
       const recTastieraInput = document.getElementById("recTastiera");
       const tastieraEl = document.getElementById("tastiera");
       const messaggio = document.getElementById("messaggio");
+      const countdownRec = document.getElementById("countdownRec");
+      const countNumero = document.getElementById("countNumero");
+      const countTesto = document.getElementById("countTesto");
+      const countSotto = document.getElementById("countSotto");
       const tracceEl = document.getElementById("tracce");
       const flashEl = document.getElementById("flash");
       const overlay = document.getElementById("overlay");
@@ -1079,6 +1163,8 @@
       let prossimoIdTraccia = 0;
       let midiBaseTastiera = MIDI_BASE_DEFAULT;
       let anticipoMicMs = Number(anticipoMicInput.value);
+      let masterBattute = 0;
+      let registrazioneInAttesa = null;
       const tastiAttivi = new Map();
       const noteAttive = new Map();
 
@@ -1101,9 +1187,11 @@
           faseOffset: 0,
           faseOffsetBattute: 0,
           durataBattutaRegistrazione: 0,
+          masterBattuteRegistrazione: 0,
           preservaFaseRegistrazione: false,
           avvioFrame: 0,
           stopFrame: 0,
+          stopTimer: null,
           avvioRegistrazione: 0,
           pezzi: [],
           frameRegistrati: 0,
@@ -1130,6 +1218,11 @@
         return Math.max(1, Math.round(Math.max(0, durata) / durataBarra));
       }
 
+      function unitaQuantizzataInAvanti(durata, unita) {
+        const tolleranza = 0.035;
+        return Math.max(1, Math.ceil(Math.max(0, durata - tolleranza) / unita));
+      }
+
       function faseDaTempoAssoluto(tempo, loopDurata) {
         if (!inMarcia || !Number.isFinite(loopDurata) || loopDurata <= 0) return 0;
         return modPositivo(tempo - avvioTrasporto, loopDurata);
@@ -1149,6 +1242,56 @@
 
       function esistonoLoop(escludi) {
         return tracce.some((traccia) => traccia !== escludi && Boolean(traccia.buffer));
+      }
+
+      function durataMasterLoop() {
+        return Math.max(1, masterBattute || 1) * durataBattuta();
+      }
+
+      function prossimoConfineMaster(tempo) {
+        if (!inMarcia || masterBattute <= 0) return tempo;
+        const durata = durataMasterLoop();
+        const indice = Math.ceil((tempo - avvioTrasporto) / durata);
+        return avvioTrasporto + Math.max(0, indice) * durata;
+      }
+
+      function aggiornaMasterDaTracce() {
+        const prima = tracce.find((traccia) => traccia.buffer && traccia.battute > 0);
+        masterBattute = prima ? Math.max(1, prima.battute) : 0;
+      }
+
+      function tracceInRegistrazione(escludi) {
+        return tracce.filter((traccia) => traccia !== escludi && traccia.registra);
+      }
+
+      function tracciaRegistrazioneAttiva() {
+        return tracce.find((traccia) => traccia.registra) || null;
+      }
+
+      function avviaRegistrazioneInAttesa() {
+        if (!registrazioneInAttesa || masterBattute <= 0 || !inMarcia) return;
+        const richiesta = registrazioneInAttesa;
+        registrazioneInAttesa = null;
+        avviaRegistrazione(richiesta.traccia, richiesta.fonte);
+      }
+
+      function cancellaTimerStop(traccia) {
+        if (!traccia.stopTimer) return;
+        window.clearTimeout(traccia.stopTimer);
+        traccia.stopTimer = null;
+      }
+
+      function programmaFallbackStop(traccia) {
+        cancellaTimerStop(traccia);
+        if (!audioCtx || !traccia.stopFrame) return;
+        const stopTempo = traccia.stopFrame / audioCtx.sampleRate;
+        const ritardoMs = Math.max(80, (stopTempo - audioCtx.currentTime) * 1000 + 180);
+        traccia.stopTimer = window.setTimeout(() => {
+          traccia.stopTimer = null;
+          if (traccia.registra && traccia.stopFrame) {
+            finalizzaRegistrazione(traccia);
+          }
+        }, ritardoMs);
       }
 
       function setMessaggio(testo) {
@@ -1558,17 +1701,28 @@
 
       function aggiornaUITraccia(traccia) {
         const haAudio = Boolean(traccia.buffer);
-        traccia.el.luce.classList.toggle("registra", traccia.registra);
+        const inAttesa = traccia.registra && !traccia.stopFrame && audioCtx && audioCtx.currentTime < traccia.avvioRegistrazione;
+        const inRegistrazioneReale = traccia.registra && !traccia.stopFrame && !inAttesa;
+        traccia.el.luce.classList.toggle("attesa", inAttesa);
+        traccia.el.luce.classList.toggle("registra", inRegistrazioneReale);
+        traccia.el.luce.classList.toggle("chiusura", Boolean(traccia.stopFrame));
         traccia.el.luce.classList.toggle("suona", !traccia.registra && haAudio && inMarcia && !traccia.muto);
         traccia.el.record.classList.toggle("ferma", traccia.registra);
         traccia.el.iconaRec.textContent = traccia.registra ? "■" : "●";
-        traccia.el.testoRec.textContent = traccia.registra ? "Ferma" : "Registra";
-        traccia.el.record.setAttribute("aria-label", `${traccia.registra ? "Ferma" : "Registra"} ${traccia.nome}`);
+        const testoPulsante = traccia.stopFrame ? "Chiude" : (inAttesa ? "Attendi" : (traccia.registra ? "Ferma" : "Registra"));
+        traccia.el.testoRec.textContent = testoPulsante;
+        traccia.el.record.setAttribute("aria-label", `${testoPulsante} ${traccia.nome}`);
         traccia.el.silenzia.textContent = traccia.muto ? "🔇" : "🔊";
         traccia.el.silenzia.classList.toggle("muto", traccia.muto);
         traccia.el.silenzia.setAttribute("aria-label", `${traccia.muto ? "Riattiva" : "Silenzia"} ${traccia.nome}`);
 
-        if (traccia.registra) {
+        if (traccia.stopFrame) {
+          traccia.el.stato.textContent = "Chiusura";
+          traccia.el.centro.textContent = "Chiusura";
+        } else if (inAttesa) {
+          traccia.el.stato.textContent = "Pronta a partire";
+          traccia.el.centro.textContent = "Attesa";
+        } else if (traccia.registra) {
           traccia.el.stato.textContent = traccia.fonteRegistrazione === "tastiera" ? "Registrazione tastiera" : "Registrazione microfono";
           traccia.el.centro.textContent = traccia.fonteRegistrazione === "tastiera" ? "Tastiera" : "Registra";
         } else if (!haAudio) {
@@ -1589,6 +1743,60 @@
 
       function aggiornaTutteLeTracce() {
         tracce.forEach(aggiornaUITraccia);
+      }
+
+      function mostraCountdownRegistrazione(visibile) {
+        countdownRec.classList.toggle("visibile", visibile);
+        if (!visibile) {
+          countdownRec.classList.remove("registra", "chiusura");
+        }
+      }
+
+      function aggiornaCountdownRegistrazione() {
+        if (!audioCtx) {
+          mostraCountdownRegistrazione(false);
+          return;
+        }
+
+        const traccia = tracciaRegistrazioneAttiva();
+        if (!traccia) {
+          mostraCountdownRegistrazione(false);
+          return;
+        }
+
+        const ora = audioCtx.currentTime;
+        const beat = durataBeat();
+        const inChiusura = Boolean(traccia.stopFrame);
+        const inAttesa = traccia.registra && !inChiusura && ora < traccia.avvioRegistrazione;
+        const inRegistrazione = traccia.registra && !inChiusura && !inAttesa;
+
+        mostraCountdownRegistrazione(true);
+        countdownRec.classList.toggle("registra", inRegistrazione);
+        countdownRec.classList.toggle("chiusura", inChiusura);
+
+        if (inChiusura) {
+          const stopTempo = traccia.stopFrame / audioCtx.sampleRate;
+          const battiti = Math.max(1, Math.ceil(Math.max(0, stopTempo - ora) / beat));
+          countNumero.textContent = String(battiti);
+          countTesto.textContent = "Chiusura allineata";
+          countSotto.textContent = battiti === 1
+            ? `${traccia.nome}: entra al prossimo battito utile`
+            : `${traccia.nome}: entra tra ${battiti} battiti`;
+        } else if (inAttesa) {
+          const battiti = Math.max(1, Math.ceil((traccia.avvioRegistrazione - ora) / beat));
+          countNumero.textContent = String(battiti);
+          countTesto.textContent = "Preparati";
+          countSotto.textContent = battiti === 1
+            ? `${traccia.nome}: registra al prossimo battito`
+            : `${traccia.nome}: registra tra ${battiti} battiti`;
+        } else {
+          const battitiRegistrati = Math.max(1, Math.floor((ora - traccia.avvioRegistrazione) / beat) + 1);
+          countNumero.textContent = "REC";
+          countTesto.textContent = "Registra ora";
+          countSotto.textContent = `${traccia.nome}: battito ${battitiRegistrati}, premi Ferma per chiudere allineato`;
+        }
+
+        aggiornaUITraccia(traccia);
       }
 
       function mostraPermesso() {
@@ -1791,10 +1999,21 @@
           avviaTrasporto();
         }
 
+        const altreInRegistrazione = tracceInRegistrazione(traccia);
+        if (altreInRegistrazione.length) {
+          altreInRegistrazione.forEach(fermaRegistrazione);
+          if (masterBattute <= 0) {
+            registrazioneInAttesa = { traccia, fonte };
+            setMessaggio("Chiudo il master, poi parte la nuova registrazione.");
+            return;
+          }
+        }
+
         avviaRegistrazione(traccia, fonte);
       }
 
       function avviaRegistrazione(traccia, fonte) {
+        cancellaTimerStop(traccia);
         fermaSorgentiTraccia(traccia);
         traccia.buffer = null;
         traccia.battute = 0;
@@ -1806,13 +2025,18 @@
         traccia.faseOffset = 0;
         traccia.faseOffsetBattute = 0;
         traccia.durataBattutaRegistrazione = durataBattuta();
-        const primoLoop = !esistonoLoop(traccia);
+        traccia.masterBattuteRegistrazione = masterBattute;
+        const primoLoop = masterBattute <= 0 && !esistonoLoop(traccia);
         traccia.preservaFaseRegistrazione = false;
         traccia.registra = true;
 
-        const inizio = fonte === "tastiera" && primoLoop
+        const inizio = primoLoop
           ? audioCtx.currentTime
-          : prossimoInizioBattuta(audioCtx.currentTime + 0.06);
+          : prossimoConfineMaster(audioCtx.currentTime + 0.06);
+        if (primoLoop) {
+          avvioTrasporto = inizio;
+          prossimoBattito = 0;
+        }
         traccia.avvioRegistrazione = inizio;
         traccia.avvioFrame = Math.round(inizio * audioCtx.sampleRate);
 
@@ -1830,9 +2054,11 @@
         }
 
         aggiornaUITraccia(traccia);
-        setMessaggio(fonte === "tastiera"
-          ? `${traccia.nome}: registrazione tastiera attiva.`
-          : `${traccia.nome}: registrazione microfono dalla prossima battuta.`);
+        aggiornaCountdownRegistrazione();
+        const parteSubito = inizio - audioCtx.currentTime < 0.12;
+        setMessaggio(parteSubito
+          ? `${traccia.nome}: registra ora.`
+          : `${traccia.nome}: preparati, parte allineata.`);
       }
 
       function fermaRegistrazione(traccia) {
@@ -1840,16 +2066,22 @@
 
         const durataBarra = traccia.durataBattutaRegistrazione || durataBattuta();
         const durataGrezza = Math.max(0, audioCtx.currentTime - traccia.avvioRegistrazione);
-        const battute = battuteQuantizzate(durataGrezza, durataBarra);
+        const masterRegistrazione = Math.max(0, Number(traccia.masterBattuteRegistrazione) || 0);
+        const battute = masterRegistrazione > 0
+          ? unitaQuantizzataInAvanti(durataGrezza, masterRegistrazione * durataBarra) * masterRegistrazione
+          : unitaQuantizzataInAvanti(durataGrezza, durataBarra);
         const durataEsatta = battute * durataBarra;
         traccia.battute = battute;
         traccia.stopFrame = traccia.avvioFrame + Math.max(1, Math.round(durataEsatta * audioCtx.sampleRate));
         setMessaggio(`${traccia.nome}: chiusura su ${battute} ${battute === 1 ? "battuta" : "battute"}.`);
+        aggiornaUITraccia(traccia);
 
         if (traccia.fonteRegistrazione === "tastiera") {
           finalizzaRegistrazione(traccia);
           return;
         }
+
+        programmaFallbackStop(traccia);
 
         if (audioCtx.currentTime * audioCtx.sampleRate >= traccia.stopFrame) {
           finalizzaRegistrazione(traccia);
@@ -1858,11 +2090,13 @@
 
       function finalizzaRegistrazione(traccia) {
         if (!traccia.registra || !traccia.stopFrame) return;
+        cancellaTimerStop(traccia);
 
         const lunghezza = Math.max(1, traccia.stopFrame - traccia.avvioFrame);
         const durataFinale = lunghezza / audioCtx.sampleRate;
         const durataBarra = traccia.durataBattutaRegistrazione || durataBattuta();
         const chiusuraTempo = traccia.avvioRegistrazione + durataFinale;
+        const primoLoop = masterBattute <= 0 && !esistonoLoop(traccia);
 
         if (traccia.fonteRegistrazione === "tastiera") {
           const eventiGrezzi = traccia.eventiTastiera
@@ -1876,22 +2110,25 @@
             ? eventiGrezzi.reduce((min, evento) => Math.min(min, evento.inizio), Infinity)
             : 0;
           const primoEventoAssoluto = traccia.avvioRegistrazione + primoEvento;
-          const durataDaPrimaNota = Math.max(0.05, durataFinale - primoEvento);
-          const battuteRender = battuteQuantizzate(durataDaPrimaNota, durataBarra);
+          const taglioInizio = primoLoop ? primoEvento : 0;
+          const durataDaTaglio = Math.max(0.05, durataFinale - taglioInizio);
+          const battuteRender = primoLoop || traccia.masterBattuteRegistrazione <= 0
+            ? unitaQuantizzataInAvanti(durataDaTaglio, durataBarra)
+            : Math.max(traccia.masterBattuteRegistrazione, traccia.battute || traccia.masterBattuteRegistrazione);
           const lunghezzaRender = Math.max(1, Math.round(battuteRender * durataBarra * audioCtx.sampleRate));
           const durataRender = lunghezzaRender / audioCtx.sampleRate;
-          const loopChiusuraTempo = traccia.avvioRegistrazione + primoEvento + durataRender;
-          if (!esistonoLoop(traccia) && primoEventoAssoluto > 0) {
+          const loopChiusuraTempo = traccia.avvioRegistrazione + taglioInizio + durataRender;
+          if (primoLoop && primoEventoAssoluto > 0) {
             avvioTrasporto = primoEventoAssoluto;
             prossimoBattito = Math.max(0, Math.floor((audioCtx.currentTime - avvioTrasporto) / durataBeat()) + 1);
           }
-          traccia.faseOffsetBattute = faseBattuteDaTempo(loopChiusuraTempo, durataBarra, battuteRender);
-          traccia.faseOffset = traccia.faseOffsetBattute * durataBarra;
+          traccia.faseOffsetBattute = 0;
+          traccia.faseOffset = 0;
           const eventi = eventiGrezzi
             .map((evento) => ({
               ...evento,
-              inizio: Math.max(0, evento.inizio - primoEvento),
-              durata: Math.min(evento.durata, Math.max(0, durataRender - Math.max(0, evento.inizio - primoEvento)))
+              inizio: Math.max(0, evento.inizio - taglioInizio),
+              durata: Math.min(evento.durata, Math.max(0, durataRender - Math.max(0, evento.inizio - taglioInizio)))
             }))
             .filter((evento) => evento.durata > 0.01);
 
@@ -1907,11 +2144,14 @@
             .then((buffer) => {
               traccia.buffer = buffer;
               traccia.battute = battuteRender;
+              if (masterBattute <= 0) masterBattute = battuteRender;
               traccia.durataBattutaRegistrazione = 0;
+              traccia.masterBattuteRegistrazione = 0;
               traccia.preservaFaseRegistrazione = false;
               if (inMarcia) {
-                avviaLoopAppenaRegistrato(traccia, loopChiusuraTempo);
+                avviaLoopAllineatoDopoRegistrazione(traccia, loopChiusuraTempo);
               }
+              avviaRegistrazioneInAttesa();
               aggiornaUITraccia(traccia);
               setMessaggio(eventi.length
                 ? `${traccia.nome}: giro tastiera pronto dalla prima nota.`
@@ -1920,11 +2160,14 @@
             .catch(() => {
               traccia.buffer = audioCtx.createBuffer(1, lunghezzaRender, audioCtx.sampleRate);
               traccia.battute = battuteRender;
+              if (masterBattute <= 0) masterBattute = battuteRender;
               traccia.durataBattutaRegistrazione = 0;
+              traccia.masterBattuteRegistrazione = 0;
               traccia.preservaFaseRegistrazione = false;
               if (inMarcia) {
-                avviaLoopAppenaRegistrato(traccia, loopChiusuraTempo);
+                avviaLoopAllineatoDopoRegistrazione(traccia, loopChiusuraTempo);
               }
+              avviaRegistrazioneInAttesa();
               aggiornaUITraccia(traccia);
               setMessaggio(`${traccia.nome}: giro tastiera vuoto.`);
             });
@@ -1954,20 +2197,23 @@
 
         traccia.buffer = buffer;
         traccia.battute = Math.max(1, traccia.battute || battuteQuantizzate(lunghezza / audioCtx.sampleRate, durataBarra));
+        if (masterBattute <= 0) masterBattute = traccia.battute;
         traccia.registra = false;
         traccia.pezzi = [];
         traccia.eventiTastiera = [];
         traccia.frameRegistrati = 0;
         traccia.stopFrame = 0;
-        traccia.faseOffsetBattute = faseBattuteDaTempo(chiusuraTempo, durataBarra, traccia.battute);
-        traccia.faseOffset = traccia.faseOffsetBattute * durataBarra;
+        traccia.faseOffsetBattute = 0;
+        traccia.faseOffset = 0;
         traccia.durataBattutaRegistrazione = 0;
+        traccia.masterBattuteRegistrazione = 0;
         traccia.preservaFaseRegistrazione = false;
 
         if (inMarcia) {
-          avviaLoopAppenaRegistrato(traccia, chiusuraTempo);
+          avviaLoopAllineatoDopoRegistrazione(traccia, chiusuraTempo);
         }
 
+        avviaRegistrazioneInAttesa();
         aggiornaUITraccia(traccia);
         setMessaggio(`${traccia.nome}: giro pronto.`);
       }
@@ -1991,8 +2237,13 @@
       function fermaTrasporto() {
         if (!audioCtx) return;
         inMarcia = false;
+        registrazioneInAttesa = null;
         tracce.forEach((traccia) => {
-          if (traccia.registra) fermaRegistrazione(traccia);
+          if (traccia.registra) {
+            fermaRegistrazione(traccia);
+            if (traccia.stopFrame) finalizzaRegistrazione(traccia);
+          }
+          cancellaTimerStop(traccia);
           fermaSorgentiTraccia(traccia);
           traccia.schedulatoFino = 0;
         });
@@ -2080,25 +2331,16 @@
         return Math.max(durataBattuta(), traccia.battute * durataBattuta());
       }
 
-      function avviaLoopAppenaRegistrato(traccia, chiusuraTempo) {
+      function avviaLoopAllineatoDopoRegistrazione(traccia, chiusuraTempo) {
         if (!audioCtx || !inMarcia || !traccia.buffer) return;
 
         const loopDurata = durataLoopTraccia(traccia);
         const ora = audioCtx.currentTime;
-        const quando = Math.max(ora + 0.012, chiusuraTempo);
-        const offset = Math.max(0, quando - chiusuraTempo);
+        const riferimento = Math.max(ora + 0.012, chiusuraTempo);
+        const quando = prossimoConfineLoop(riferimento, loopDurata, faseOffsetTraccia(traccia));
 
-        if (offset < loopDurata && Math.abs(loopDurata - traccia.buffer.duration) < 0.02) {
-          const sorgente = audioCtx.createBufferSource();
-          sorgente.buffer = traccia.buffer;
-          sorgente.connect(traccia.gain);
-          sorgente.start(quando, Math.min(offset, traccia.buffer.duration), Math.max(0.02, traccia.buffer.duration - offset));
-          sorgente.stop(quando + Math.max(0.02, loopDurata - offset) + 0.025);
-          traccia.sorgenti.push({ nodo: sorgente, fine: quando + Math.max(0.02, loopDurata - offset) + 0.04 });
-        }
-
-        const passati = Math.max(0, Math.floor((ora - chiusuraTempo) / loopDurata) + 1);
-        traccia.schedulatoFino = chiusuraTempo + passati * loopDurata;
+        traccia.schedulatoFino = quando;
+        schedulaTraccia(traccia, ora, quando + 0.02);
       }
 
       function prossimoConfineLoop(tempo, loopDurata, faseOffset = 0) {
@@ -2211,6 +2453,10 @@
       }
 
       function cancellaTraccia(traccia) {
+        if (registrazioneInAttesa && registrazioneInAttesa.traccia === traccia) {
+          registrazioneInAttesa = null;
+        }
+        cancellaTimerStop(traccia);
         fermaSorgentiTraccia(traccia);
         traccia.buffer = null;
         traccia.battute = 0;
@@ -2223,6 +2469,7 @@
         traccia.faseOffset = 0;
         traccia.faseOffsetBattute = 0;
         traccia.preservaFaseRegistrazione = false;
+        aggiornaMasterDaTracce();
         aggiornaUITraccia(traccia);
         setMessaggio(`${traccia.nome}: cancellata.`);
       }
@@ -2241,6 +2488,7 @@
       function aggiornaProgressi() {
         if (!audioCtx) return;
         const ora = audioCtx.currentTime;
+        aggiornaCountdownRegistrazione();
 
         tracce.forEach((traccia) => {
           if (traccia.registra) {
@@ -2332,6 +2580,7 @@
           bpm: bpm(),
           metronomo: metronomoInput.checked,
           anticipoMicMs,
+          masterBattute,
           tastiera: {
             strumento: strumentoTastieraSelect.value,
             rec: recTastieraInput.checked,
@@ -2373,6 +2622,7 @@
 
         if (inMarcia) fermaTrasporto();
         creaAudioBase();
+        registrazioneInAttesa = null;
 
         tracce.forEach(fermaSorgentiTraccia);
         tracce.splice(0, tracce.length);
@@ -2382,6 +2632,7 @@
         bpmInput.value = Math.min(180, Math.max(60, Number(progetto.bpm) || 120));
         bpmValore.textContent = bpmInput.value;
         metronomoInput.checked = Boolean(progetto.metronomo);
+        masterBattute = Math.max(0, Number(progetto.masterBattute) || 0);
         if (progetto.anticipoMicMs != null) {
           anticipoMicMs = Math.min(220, Math.max(0, Number(progetto.anticipoMicMs) || 0));
           anticipoMicInput.value = String(anticipoMicMs);
@@ -2402,8 +2653,8 @@
           traccia.volume = Math.min(1, Math.max(0, Number(dato.volume) || 0));
           traccia.muto = Boolean(dato.muto);
           traccia.battute = Math.max(0, Number(dato.battute) || 0);
-          traccia.faseOffsetBattute = Math.max(0, Number(dato.faseOffsetBattute) || 0);
-          traccia.faseOffset = traccia.faseOffsetBattute * durataBattuta();
+          traccia.faseOffsetBattute = 0;
+          traccia.faseOffset = 0;
 
           if (dato.audio && dato.sampleRate) {
             const pcm = base64ToFloat32(dato.audio);
@@ -2419,6 +2670,7 @@
           aggiungiTraccia();
         }
 
+        if (masterBattute <= 0) aggiornaMasterDaTracce();
         aggiornaTutteLeTracce();
         setMessaggio("Progetto caricato.");
       }
