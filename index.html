@@ -1,0 +1,2696 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Genca Loop Station</title>
+  <style>
+    :root {
+      --sfondo: #f0f0f0;
+      --testo: #161616;
+      --muted: #777;
+      --linea: #d8d8d8;
+      --bianco: #ffffff;
+      --rosso: #ff3b30;
+      --rosso-scuro: #c91f16;
+      --verde: #34c759;
+      --giallo: #ffd60a;
+      --blu: #0a84ff;
+      --viola: #af52de;
+      --grigio: #b8b8b8;
+      --ombra: 0 18px 50px rgba(0, 0, 0, 0.09);
+      font-family: "Avenir Next Rounded", "Nunito", "Arial Rounded MT Bold", "Segoe UI", system-ui, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--testo);
+      background: var(--sfondo);
+      letter-spacing: 0;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .app {
+      width: min(1220px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 24px 0 34px;
+    }
+
+    .testata {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .titolo {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 4.7rem);
+      line-height: 0.92;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .sottotitolo {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .stato-audio {
+      min-width: min(100%, 270px);
+      padding: 12px 14px;
+      border: 2px solid var(--linea);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.6);
+      color: #444;
+      font-size: 0.88rem;
+      font-weight: 800;
+      line-height: 1.25;
+      text-align: right;
+      text-transform: uppercase;
+    }
+
+    .pannello {
+      display: grid;
+      grid-template-columns: minmax(250px, 1fr) minmax(220px, 0.7fr) minmax(260px, 0.9fr);
+      gap: 16px;
+      align-items: stretch;
+      margin-bottom: 18px;
+    }
+
+    .modulo {
+      min-height: 172px;
+      padding: 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 28px;
+      background: var(--bianco);
+      box-shadow: var(--ombra);
+    }
+
+    .label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      font-size: 0.9rem;
+      font-weight: 950;
+      text-transform: uppercase;
+      color: #555;
+    }
+
+    .valore-bpm {
+      color: var(--testo);
+      font-size: 2.7rem;
+      line-height: 1;
+      font-weight: 950;
+    }
+
+    .slider-wrap {
+      display: grid;
+      grid-template-columns: 52px 1fr 52px;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+      color: #707070;
+      font-weight: 900;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 40px;
+      margin: 0;
+      appearance: none;
+      background: transparent;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 14px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--giallo), var(--rosso), var(--viola), var(--blu));
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      width: 38px;
+      height: 38px;
+      margin-top: -12px;
+      appearance: none;
+      border: 5px solid var(--bianco);
+      border-radius: 50%;
+      background: var(--testo);
+      box-shadow: 0 7px 18px rgba(0, 0, 0, 0.22);
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 14px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--giallo), var(--rosso), var(--viola), var(--blu));
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 28px;
+      height: 28px;
+      border: 5px solid var(--bianco);
+      border-radius: 50%;
+      background: var(--testo);
+      box-shadow: 0 7px 18px rgba(0, 0, 0, 0.22);
+    }
+
+    .metronomo-box {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 18px;
+      height: 100%;
+    }
+
+    .toggle {
+      position: relative;
+      display: inline-flex;
+      width: 86px;
+      height: 48px;
+    }
+
+    .toggle input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .pista-toggle {
+      width: 100%;
+      height: 100%;
+      border-radius: 999px;
+      background: #d6d6d6;
+      transition: background 160ms ease;
+    }
+
+    .pista-toggle::after {
+      content: "";
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--bianco);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+      transition: transform 160ms ease;
+    }
+
+    .toggle input:checked + .pista-toggle {
+      background: var(--verde);
+    }
+
+    .toggle input:checked + .pista-toggle::after {
+      transform: translateX(38px);
+    }
+
+    .flash {
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      background: #d5d5d5;
+      border: 8px solid var(--bianco);
+      box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.05), 0 12px 26px rgba(0, 0, 0, 0.1);
+      transition: background 90ms ease, transform 90ms ease, box-shadow 90ms ease;
+    }
+
+    .flash.acceso {
+      background: var(--giallo);
+      transform: scale(1.08);
+      box-shadow: 0 0 0 14px rgba(255, 214, 10, 0.28), 0 12px 26px rgba(0, 0, 0, 0.1);
+    }
+
+    .trasporto {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      min-height: 172px;
+    }
+
+    .bottone-trasporto {
+      width: 100%;
+      height: 100%;
+      min-height: 132px;
+      border-radius: 28px;
+      color: var(--bianco);
+      box-shadow: var(--ombra);
+      font-size: clamp(1.45rem, 3vw, 2.8rem);
+      line-height: 1.02;
+      font-weight: 950;
+      text-transform: uppercase;
+      transition: transform 120ms ease, background 120ms ease;
+    }
+
+    .bottone-play {
+      background: var(--verde);
+    }
+
+    .bottone-stop {
+      background: var(--rosso);
+    }
+
+    .bottone-trasporto:active,
+    .record:active,
+    .icon-btn:active {
+      transform: scale(0.97);
+    }
+
+    .bottone-play.attivo {
+      background: var(--blu);
+    }
+
+    .messaggio {
+      min-height: 30px;
+      margin: 0 0 16px;
+      color: #666;
+      font-size: 0.95rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .strumenti {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin: 0 0 16px;
+    }
+
+    .strumento {
+      min-height: 78px;
+      padding: 14px 12px;
+      border-radius: 22px;
+      background: var(--bianco);
+      color: var(--testo);
+      box-shadow: var(--ombra);
+      font-size: clamp(0.88rem, 1.5vw, 1.05rem);
+      font-weight: 950;
+      line-height: 1.05;
+      text-transform: uppercase;
+      transition: transform 120ms ease, background 120ms ease, color 120ms ease;
+    }
+
+    .strumento:active {
+      transform: scale(0.97);
+    }
+
+    .strumento.aggiungi {
+      background: var(--giallo);
+    }
+
+    .strumento.salva {
+      background: var(--verde);
+      color: var(--bianco);
+    }
+
+    .strumento.carica {
+      background: var(--blu);
+      color: var(--bianco);
+    }
+
+    .strumento.wav {
+      background: var(--testo);
+      color: var(--bianco);
+    }
+
+    .strumento.mp3 {
+      background: var(--viola);
+      color: var(--bianco);
+    }
+
+    .sync-mic {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) minmax(260px, 1.4fr);
+      gap: 16px;
+      align-items: center;
+      margin: 0 0 16px;
+      padding: 16px 18px;
+      border: 2px solid #dedede;
+      border-radius: 24px;
+      background: var(--bianco);
+      box-shadow: var(--ombra);
+    }
+
+    .sync-mic .label {
+      margin: 0;
+    }
+
+    .sync-valore {
+      color: var(--testo);
+      font-size: 1.8rem;
+      line-height: 1;
+      font-weight: 950;
+    }
+
+    .tastiera-box {
+      margin: 0 0 16px;
+      padding: 18px;
+      border: 2px solid #dedede;
+      border-radius: 30px;
+      background: var(--bianco);
+      box-shadow: var(--ombra);
+    }
+
+    .tastiera-top {
+      display: grid;
+      grid-template-columns: 1fr minmax(180px, 260px) auto auto;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .tastiera-titolo {
+      margin: 0;
+      font-size: clamp(1.4rem, 2.6vw, 2.5rem);
+      line-height: 1;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .strumento-select {
+      width: 100%;
+      min-height: 54px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 18px;
+      background: #ededed;
+      color: var(--testo);
+      font-size: 1rem;
+      font-weight: 950;
+      text-transform: uppercase;
+      outline: none;
+    }
+
+    .rec-tastiera {
+      display: grid;
+      grid-template-columns: auto auto;
+      gap: 10px;
+      align-items: center;
+      font-size: 0.86rem;
+      font-weight: 950;
+      text-transform: uppercase;
+      color: #555;
+    }
+
+    .ottave {
+      display: grid;
+      grid-template-columns: 58px minmax(78px, auto) 58px;
+      gap: 8px;
+      align-items: center;
+      justify-content: end;
+    }
+
+    .ottava-btn {
+      width: 58px;
+      height: 54px;
+      border-radius: 18px;
+      background: var(--testo);
+      color: var(--bianco);
+      font-size: 1.6rem;
+      font-weight: 950;
+      line-height: 1;
+      box-shadow: inset 0 -4px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .ottava-label {
+      min-height: 54px;
+      display: grid;
+      place-items: center;
+      padding: 0 12px;
+      border-radius: 18px;
+      background: #ededed;
+      color: #444;
+      font-size: 0.84rem;
+      font-weight: 950;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .tastiera {
+      display: grid;
+      grid-template-columns: repeat(24, minmax(31px, 1fr));
+      gap: 5px;
+      align-items: end;
+      min-height: 178px;
+      padding: 10px;
+      border-radius: 22px;
+      background: #dcdcdc;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .tasto {
+      position: relative;
+      min-width: 0;
+      height: 150px;
+      border-radius: 0 0 13px 13px;
+      background: #fafafa;
+      color: #222;
+      box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.08), 0 5px 8px rgba(0, 0, 0, 0.08);
+      display: grid;
+      align-content: end;
+      justify-items: center;
+      gap: 5px;
+      padding: 0 2px 10px;
+      font-weight: 950;
+      transition: transform 80ms ease, background 80ms ease, box-shadow 80ms ease;
+    }
+
+    .tasto.nero {
+      height: 104px;
+      border-radius: 0 0 10px 10px;
+      background: #1f1f1f;
+      color: #f5f5f5;
+      box-shadow: inset 0 -6px 0 rgba(255, 255, 255, 0.07), 0 6px 10px rgba(0, 0, 0, 0.18);
+    }
+
+    .tasto.attivo {
+      transform: translateY(5px);
+      background: var(--giallo);
+      box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .tasto.nero.attivo {
+      background: var(--blu);
+    }
+
+    .nota {
+      font-size: clamp(0.62rem, 0.9vw, 0.82rem);
+      line-height: 1;
+    }
+
+    .scorciatoia {
+      width: min(24px, 92%);
+      min-height: 22px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.08);
+      font-size: clamp(0.58rem, 0.75vw, 0.72rem);
+      line-height: 1;
+    }
+
+    .tasto.nero .scorciatoia {
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .tracce {
+      display: grid;
+      gap: 14px;
+    }
+
+    .traccia {
+      --accento: var(--blu);
+      display: grid;
+      grid-template-columns: 164px minmax(172px, 220px) minmax(230px, 1fr) 126px 142px;
+      align-items: center;
+      gap: 16px;
+      padding: 18px;
+      border: 2px solid #dedede;
+      border-radius: 30px;
+      background: var(--bianco);
+      box-shadow: var(--ombra);
+    }
+
+    .nome-gruppo {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .luce {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--grigio);
+      box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.8), 0 4px 12px rgba(0, 0, 0, 0.16);
+    }
+
+    .luce.registra {
+      background: var(--rosso);
+      animation: pulsa 760ms ease-in-out infinite;
+    }
+
+    .luce.suona {
+      background: var(--verde);
+      box-shadow: 0 0 0 9px rgba(52, 199, 89, 0.2), inset 0 0 0 4px rgba(255, 255, 255, 0.8);
+    }
+
+    @keyframes pulsa {
+      0%,
+      100% {
+        transform: scale(0.86);
+        box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.4), inset 0 0 0 4px rgba(255, 255, 255, 0.82);
+      }
+      50% {
+        transform: scale(1.08);
+        box-shadow: 0 0 0 11px rgba(255, 59, 48, 0.15), inset 0 0 0 4px rgba(255, 255, 255, 0.82);
+      }
+    }
+
+    .nome {
+      min-width: 0;
+    }
+
+    .nome h2 {
+      margin: 0;
+      font-size: clamp(1.35rem, 2vw, 2rem);
+      line-height: 1;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .stato {
+      margin-top: 7px;
+      color: #757575;
+      font-size: 0.78rem;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .record {
+      width: min(100%, 190px);
+      aspect-ratio: 1;
+      justify-self: center;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--rosso);
+      color: var(--bianco);
+      box-shadow: inset 0 -10px 0 rgba(0, 0, 0, 0.12), 0 16px 34px rgba(255, 59, 48, 0.28);
+      transition: transform 120ms ease, border-radius 160ms ease, background 120ms ease;
+    }
+
+    .record .icona-rec {
+      font-size: clamp(3rem, 5vw, 5rem);
+      line-height: 1;
+    }
+
+    .record .testo-rec {
+      display: block;
+      margin-top: 7px;
+      font-size: 0.88rem;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .record.ferma {
+      border-radius: 26%;
+      background: var(--rosso-scuro);
+    }
+
+    .cerchio-wrap {
+      display: grid;
+      place-items: center;
+      min-width: 0;
+    }
+
+    .cerchio {
+      --progress: 0deg;
+      width: min(100%, 218px);
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, var(--bianco) 0 58%, transparent 59%),
+        conic-gradient(var(--accento) 0deg var(--progress), #dfdfdf var(--progress) 360deg);
+      box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.05), 0 12px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .centro-cerchio {
+      width: 58%;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #555;
+      background: #f8f8f8;
+      font-size: clamp(0.78rem, 1.2vw, 0.95rem);
+      font-weight: 950;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .azioni {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      justify-items: center;
+    }
+
+    .icon-btn {
+      width: 72px;
+      height: 72px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #ededed;
+      color: var(--testo);
+      font-size: 2.1rem;
+      box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.06);
+      transition: transform 120ms ease, background 120ms ease;
+    }
+
+    .icon-btn.muto {
+      background: #d7d7d7;
+      color: #777;
+    }
+
+    .icon-btn.cancella {
+      background: #ffe8e6;
+    }
+
+    .volume {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      align-items: center;
+      justify-items: center;
+    }
+
+    .volume label {
+      color: #666;
+      font-size: 0.76rem;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .volume input[type="range"] {
+      width: 128px;
+      height: 36px;
+    }
+
+    .volume input[type="range"]::-webkit-slider-runnable-track {
+      height: 12px;
+      background: linear-gradient(90deg, #cfcfcf, var(--accento));
+    }
+
+    .volume input[type="range"]::-webkit-slider-thumb {
+      width: 32px;
+      height: 32px;
+      margin-top: -10px;
+      border-width: 5px;
+    }
+
+    .volume input[type="range"]::-moz-range-track {
+      height: 12px;
+      background: linear-gradient(90deg, #cfcfcf, var(--accento));
+    }
+
+    .volume input[type="range"]::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      border-width: 5px;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: none;
+      place-items: center;
+      padding: 20px;
+      background: rgba(240, 240, 240, 0.84);
+      backdrop-filter: blur(16px);
+    }
+
+    .overlay.visibile {
+      display: grid;
+    }
+
+    .finestra {
+      width: min(520px, 100%);
+      padding: 30px;
+      border-radius: 34px;
+      background: var(--bianco);
+      box-shadow: 0 26px 80px rgba(0, 0, 0, 0.18);
+      text-align: center;
+    }
+
+    .finestra h2 {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 7vw, 3.6rem);
+      line-height: 0.95;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .finestra p {
+      margin: 0 0 22px;
+      color: #555;
+      font-weight: 800;
+      line-height: 1.45;
+    }
+
+    .permesso {
+      width: 100%;
+      padding: 22px 26px;
+      border-radius: 999px;
+      background: var(--verde);
+      color: var(--bianco);
+      font-size: 1.2rem;
+      font-weight: 950;
+      text-transform: uppercase;
+      box-shadow: 0 14px 28px rgba(52, 199, 89, 0.25);
+    }
+
+    @media (max-width: 980px) {
+      .testata {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .stato-audio {
+        text-align: left;
+      }
+
+      .pannello {
+        grid-template-columns: 1fr;
+      }
+
+      .strumenti {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .sync-mic {
+        grid-template-columns: 1fr;
+      }
+
+      .tastiera-top {
+        grid-template-columns: 1fr;
+      }
+
+      .tastiera {
+        overflow-x: auto;
+        grid-template-columns: repeat(24, 42px);
+      }
+
+      .traccia {
+        grid-template-columns: 1fr 160px;
+        grid-template-areas:
+          "nome azioni"
+          "rec cerchio"
+          "volume cerchio";
+      }
+
+      .nome-gruppo {
+        grid-area: nome;
+      }
+
+      .record {
+        grid-area: rec;
+        width: 150px;
+      }
+
+      .cerchio-wrap {
+        grid-area: cerchio;
+      }
+
+      .azioni {
+        grid-area: azioni;
+        grid-template-columns: 72px 72px;
+        justify-content: end;
+      }
+
+      .volume {
+        grid-area: volume;
+        justify-items: start;
+      }
+
+      .volume input[type="range"] {
+        width: min(100%, 220px);
+      }
+    }
+
+    @media (max-width: 620px) {
+      .app {
+        width: min(100% - 18px, 1220px);
+        padding-top: 12px;
+      }
+
+      .modulo {
+        padding: 16px;
+        border-radius: 22px;
+      }
+
+      .strumenti {
+        grid-template-columns: 1fr;
+      }
+
+      .tastiera-box {
+        padding: 14px;
+        border-radius: 24px;
+      }
+
+      .tasto {
+        height: 134px;
+      }
+
+      .tasto.nero {
+        height: 96px;
+      }
+
+      .traccia {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "nome"
+          "cerchio"
+          "rec"
+          "volume"
+          "azioni";
+        padding: 16px;
+      }
+
+      .record {
+        width: min(70vw, 210px);
+      }
+
+      .cerchio {
+        width: min(72vw, 230px);
+      }
+
+      .azioni {
+        grid-template-columns: 82px 82px;
+        justify-content: center;
+      }
+
+      .icon-btn {
+        width: 82px;
+        height: 82px;
+      }
+
+      .volume {
+        justify-items: center;
+      }
+
+      .volume input[type="range"] {
+        width: min(86vw, 300px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="testata">
+      <div>
+        <h1 class="titolo">Genca<br>Loop Station</h1>
+        <p class="sottotitolo">Voci libere, un solo giro</p>
+      </div>
+      <div id="statoAudio" class="stato-audio">Tocca un comando per attivare il microfono</div>
+    </header>
+
+    <section class="pannello" aria-label="Comandi principali">
+      <div class="modulo">
+        <div class="label">
+          <span>Velocità</span>
+          <span><span id="bpmValore" class="valore-bpm">120</span> BPM</span>
+        </div>
+        <div class="slider-wrap">
+          <span>60</span>
+          <input id="bpm" type="range" min="60" max="180" value="120" aria-label="Velocità">
+          <span>180</span>
+        </div>
+      </div>
+
+      <div class="modulo">
+        <div class="metronomo-box">
+          <div>
+            <div class="label" style="margin-bottom: 12px;">Metronomo</div>
+            <label class="toggle" aria-label="Metronomo">
+              <input id="metronomo" type="checkbox" checked>
+              <span class="pista-toggle"></span>
+            </label>
+          </div>
+          <div id="flash" class="flash" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <div class="trasporto" aria-label="Trasporto globale">
+        <button id="playGlobale" class="bottone-trasporto bottone-play" type="button">Avvia</button>
+        <button id="stopGlobale" class="bottone-trasporto bottone-stop" type="button">Ferma</button>
+      </div>
+    </section>
+
+    <p id="messaggio" class="messaggio">Pronto.</p>
+
+    <section class="strumenti" aria-label="Progetto ed esportazione">
+      <button id="aggiungiVoce" class="strumento aggiungi" type="button">+ Voce</button>
+      <button id="salvaProgetto" class="strumento salva" type="button">Salva<br>progetto</button>
+      <button id="caricaProgetto" class="strumento carica" type="button">Carica<br>progetto</button>
+      <button id="esportaWav" class="strumento wav" type="button">Esporta<br>WAV</button>
+      <button id="esportaMp3" class="strumento mp3" type="button">Esporta<br>MP3</button>
+      <input id="fileProgetto" type="file" accept="application/json,.json" hidden>
+    </section>
+
+    <section class="sync-mic" aria-label="Sincronizzazione microfono">
+      <div class="label">
+        <span>Anticipo mic</span>
+        <span><span id="anticipoMicValore" class="sync-valore">70</span> ms</span>
+      </div>
+      <input id="anticipoMic" type="range" min="0" max="220" value="70" aria-label="Anticipo microfono">
+    </section>
+
+    <section class="tastiera-box" aria-label="Tastiera">
+      <div class="tastiera-top">
+        <h2 class="tastiera-titolo">Tastiera</h2>
+        <select id="strumentoTastiera" class="strumento-select" aria-label="Strumento tastiera">
+          <option value="morbido">Morbido</option>
+          <option value="piano">Piano</option>
+          <option value="organo">Organo</option>
+          <option value="basso">Basso</option>
+          <option value="campana">Campana</option>
+          <option value="carillon_neve">Carillon neve</option>
+          <option value="glitch_tiepido">Glitch tiepido</option>
+          <option value="coro_aria">Coro aria</option>
+          <option value="nastro_fragile">Nastro fragile</option>
+          <option value="drone_lana">Drone lana</option>
+        </select>
+        <div class="ottave" aria-label="Range ottave">
+          <button id="ottavaGiu" class="ottava-btn" type="button" aria-label="Ottava giù">↓</button>
+          <div id="ottavaLabel" class="ottava-label">DO3<br>SI4</div>
+          <button id="ottavaSu" class="ottava-btn" type="button" aria-label="Ottava su">↑</button>
+        </div>
+        <label class="rec-tastiera">
+          <span>REC tastiera</span>
+          <span class="toggle" aria-label="REC tastiera">
+            <input id="recTastiera" type="checkbox">
+            <span class="pista-toggle"></span>
+          </span>
+        </label>
+      </div>
+      <div id="tastiera" class="tastiera" aria-label="24 tasti"></div>
+    </section>
+
+    <section id="tracce" class="tracce" aria-label="Tracce vocali"></section>
+  </main>
+
+  <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="overlayTitolo">
+    <div class="finestra">
+      <h2 id="overlayTitolo">Microfono</h2>
+      <p>Per registrare la voce serve il permesso del microfono. L'audio resta in questa pagina.</p>
+      <button id="permesso" class="permesso" type="button">Attiva microfono</button>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const TRACCE_INIZIALI = 4;
+      const COLORI = ["#0a84ff", "#ff3b30", "#34c759", "#af52de"];
+      const LOOKAHEAD = 0.14;
+      const INTERVALLO_TIMER = 25;
+      const GRANO_DURATA = 0.09;
+      const GRANO_PASSO = 0.035;
+      const NOTE_TASTIERA = 24;
+      const MIDI_BASE_DEFAULT = 48;
+      const MIDI_BASE_MIN = 24;
+      const MIDI_BASE_MAX = 72;
+      const NOMI_NOTE = ["DO", "DO#", "RE", "RE#", "MI", "FA", "FA#", "SOL", "SOL#", "LA", "LA#", "SI"];
+      const TASTI_PC = ["A", "W", "S", "E", "D", "F", "T", "G", "Y", "H", "U", "J", "K", "O", "L", "P", "Z", "X", "C", "V", "B", "N", "M", "Q"];
+
+      const statoAudio = document.getElementById("statoAudio");
+      const bpmInput = document.getElementById("bpm");
+      const bpmValore = document.getElementById("bpmValore");
+      const metronomoInput = document.getElementById("metronomo");
+      const playGlobaleButton = document.getElementById("playGlobale");
+      const stopGlobaleButton = document.getElementById("stopGlobale");
+      const aggiungiVoceButton = document.getElementById("aggiungiVoce");
+      const salvaProgettoButton = document.getElementById("salvaProgetto");
+      const caricaProgettoButton = document.getElementById("caricaProgetto");
+      const esportaWavButton = document.getElementById("esportaWav");
+      const esportaMp3Button = document.getElementById("esportaMp3");
+      const fileProgettoInput = document.getElementById("fileProgetto");
+      const anticipoMicInput = document.getElementById("anticipoMic");
+      const anticipoMicValore = document.getElementById("anticipoMicValore");
+      const strumentoTastieraSelect = document.getElementById("strumentoTastiera");
+      const ottavaGiuButton = document.getElementById("ottavaGiu");
+      const ottavaSuButton = document.getElementById("ottavaSu");
+      const ottavaLabel = document.getElementById("ottavaLabel");
+      const recTastieraInput = document.getElementById("recTastiera");
+      const tastieraEl = document.getElementById("tastiera");
+      const messaggio = document.getElementById("messaggio");
+      const tracceEl = document.getElementById("tracce");
+      const flashEl = document.getElementById("flash");
+      const overlay = document.getElementById("overlay");
+      const permessoButton = document.getElementById("permesso");
+
+      let audioCtx = null;
+      let micStream = null;
+      let captureNode = null;
+      let scriptCaptureNode = null;
+      let masterGain = null;
+      let clickGain = null;
+      let timer = null;
+      let animazione = null;
+      let inMarcia = false;
+      let avvioTrasporto = 0;
+      let prossimoBattito = 0;
+      let richiestaPermessoInCorso = null;
+      let workletCaricato = false;
+      let prossimoIdTraccia = 0;
+      let midiBaseTastiera = MIDI_BASE_DEFAULT;
+      let anticipoMicMs = Number(anticipoMicInput.value);
+      const tastiAttivi = new Map();
+      const noteAttive = new Map();
+
+      const tracce = [];
+
+      function creaDatiTraccia() {
+        const id = prossimoIdTraccia;
+        prossimoIdTraccia += 1;
+        return {
+          id,
+          nome: `VOCE ${id + 1}`,
+          colore: COLORI[id % COLORI.length],
+          buffer: null,
+          battute: 0,
+          volume: 0.85,
+          muto: false,
+          registra: false,
+          fonteRegistrazione: "mic",
+          eventiTastiera: [],
+          faseOffset: 0,
+          faseOffsetBattute: 0,
+          durataBattutaRegistrazione: 0,
+          preservaFaseRegistrazione: false,
+          avvioFrame: 0,
+          stopFrame: 0,
+          avvioRegistrazione: 0,
+          pezzi: [],
+          frameRegistrati: 0,
+          gain: null,
+          sorgenti: [],
+          schedulatoFino: 0,
+          el: {}
+        };
+      }
+
+      function bpm() {
+        return Number(bpmInput.value);
+      }
+
+      function durataBattuta() {
+        return (60 / bpm()) * 4;
+      }
+
+      function durataBeat() {
+        return 60 / bpm();
+      }
+
+      function battuteQuantizzate(durata, durataBarra) {
+        return Math.max(1, Math.round(Math.max(0, durata) / durataBarra));
+      }
+
+      function faseDaTempoAssoluto(tempo, loopDurata) {
+        if (!inMarcia || !Number.isFinite(loopDurata) || loopDurata <= 0) return 0;
+        return modPositivo(tempo - avvioTrasporto, loopDurata);
+      }
+
+      function faseBattuteDaTempo(tempo, durataBarra, battuteLoop) {
+        if (!inMarcia || !Number.isFinite(durataBarra) || durataBarra <= 0) return 0;
+        return modPositivo((tempo - avvioTrasporto) / durataBarra, Math.max(1, battuteLoop));
+      }
+
+      function faseOffsetTraccia(traccia) {
+        if (Number.isFinite(traccia.faseOffsetBattute)) {
+          return Math.max(0, traccia.faseOffsetBattute) * durataBattuta();
+        }
+        return Math.max(0, Number(traccia.faseOffset) || 0);
+      }
+
+      function esistonoLoop(escludi) {
+        return tracce.some((traccia) => traccia !== escludi && Boolean(traccia.buffer));
+      }
+
+      function setMessaggio(testo) {
+        messaggio.textContent = testo;
+      }
+
+      function setStatoAudio(testo) {
+        statoAudio.textContent = testo;
+      }
+
+      function modPositivo(valore, modulo) {
+        return ((valore % modulo) + modulo) % modulo;
+      }
+
+      function frequenzaMidi(midi) {
+        return 440 * Math.pow(2, (midi - 69) / 12);
+      }
+
+      function nomeNota(midi) {
+        const nome = NOMI_NOTE[midi % 12];
+        const ottava = Math.floor(midi / 12) - 1;
+        return `${nome}${ottava}`;
+      }
+
+      function noteNera(midi) {
+        return [1, 3, 6, 8, 10].includes(midi % 12);
+      }
+
+      function impostazioniStrumento(nome) {
+        const strumenti = {
+          morbido: {
+            forma: "sine",
+            parziali: [[1, 1], [2, 0.22], [3, 0.08]],
+            attacco: 0.018,
+            decadimento: 0.18,
+            sustain: 0.62,
+            rilascio: 0.18,
+            guadagno: 0.32,
+            filtro: 2600
+          },
+          piano: {
+            forma: "triangle",
+            parziali: [[1, 1], [2, 0.34], [3, 0.16]],
+            attacco: 0.006,
+            decadimento: 0.72,
+            sustain: 0.05,
+            rilascio: 0.16,
+            guadagno: 0.42,
+            filtro: 3600
+          },
+          organo: {
+            forma: "square",
+            parziali: [[1, 1], [2, 0.28], [4, 0.12]],
+            attacco: 0.012,
+            decadimento: 0.08,
+            sustain: 0.82,
+            rilascio: 0.09,
+            guadagno: 0.22,
+            filtro: 2400
+          },
+          basso: {
+            forma: "sawtooth",
+            parziali: [[0.5, 1], [1, 0.38], [2, 0.08]],
+            attacco: 0.01,
+            decadimento: 0.12,
+            sustain: 0.58,
+            rilascio: 0.14,
+            guadagno: 0.42,
+            filtro: 780
+          },
+          campana: {
+            forma: "sine",
+            parziali: [[1, 1], [2.01, 0.45], [2.87, 0.24], [4.2, 0.1]],
+            attacco: 0.004,
+            decadimento: 1.1,
+            sustain: 0.02,
+            rilascio: 0.9,
+            guadagno: 0.34,
+            filtro: 5200
+          },
+          carillon_neve: {
+            forma: "sine",
+            parziali: [[1, 1], [2.02, 0.38], [3.01, 0.18], [5.04, 0.08]],
+            attacco: 0.006,
+            decadimento: 1.45,
+            sustain: 0.03,
+            rilascio: 1.2,
+            guadagno: 0.29,
+            filtro: 6100
+          },
+          glitch_tiepido: {
+            forma: "square",
+            parziali: [[1, 1], [1.005, 0.5], [2, 0.16], [3.03, 0.07]],
+            attacco: 0.003,
+            decadimento: 0.24,
+            sustain: 0.18,
+            rilascio: 0.12,
+            guadagno: 0.2,
+            filtro: 1700
+          },
+          coro_aria: {
+            forma: "sine",
+            parziali: [[0.995, 0.85], [1, 1], [1.006, 0.85], [2, 0.12]],
+            attacco: 0.12,
+            decadimento: 0.55,
+            sustain: 0.64,
+            rilascio: 1.05,
+            guadagno: 0.24,
+            filtro: 1900
+          },
+          nastro_fragile: {
+            forma: "triangle",
+            parziali: [[0.997, 0.75], [1, 1], [1.008, 0.55], [2.02, 0.18]],
+            attacco: 0.035,
+            decadimento: 0.42,
+            sustain: 0.34,
+            rilascio: 0.65,
+            guadagno: 0.27,
+            filtro: 2300
+          },
+          drone_lana: {
+            forma: "sawtooth",
+            parziali: [[0.5, 0.42], [1, 1], [1.5, 0.22], [2, 0.12]],
+            attacco: 0.22,
+            decadimento: 0.4,
+            sustain: 0.72,
+            rilascio: 1.35,
+            guadagno: 0.19,
+            filtro: 980
+          }
+        };
+        return strumenti[nome] || strumenti.morbido;
+      }
+
+      function creaVoceSynth(ctx, uscita, midi, quando, strumento, durataNota) {
+        const cfg = impostazioniStrumento(strumento);
+        const base = frequenzaMidi(midi);
+        const voceGain = ctx.createGain();
+        const filtro = ctx.createBiquadFilter();
+        const fineNota = durataNota == null ? null : quando + Math.max(0.018, durataNota);
+        const rilascio = cfg.rilascio;
+        const stopA = fineNota == null ? null : fineNota + rilascio + 0.04;
+        const oscillatori = [];
+
+        filtro.type = "lowpass";
+        filtro.frequency.setValueAtTime(cfg.filtro, quando);
+        filtro.Q.setValueAtTime(0.8, quando);
+        voceGain.gain.setValueAtTime(0.0001, quando);
+        voceGain.gain.linearRampToValueAtTime(cfg.guadagno, quando + cfg.attacco);
+        voceGain.gain.exponentialRampToValueAtTime(Math.max(0.0001, cfg.guadagno * cfg.sustain), quando + cfg.attacco + cfg.decadimento);
+
+        if (fineNota != null) {
+          const rilascioDa = Math.max(quando + cfg.attacco, fineNota);
+          voceGain.gain.setValueAtTime(Math.max(0.0001, cfg.guadagno * cfg.sustain), rilascioDa);
+          voceGain.gain.exponentialRampToValueAtTime(0.0001, rilascioDa + rilascio);
+        }
+
+        cfg.parziali.forEach(([moltiplica, livello]) => {
+          const osc = ctx.createOscillator();
+          const parzialeGain = ctx.createGain();
+          osc.type = cfg.forma;
+          osc.frequency.setValueAtTime(base * moltiplica, quando);
+          parzialeGain.gain.setValueAtTime(livello, quando);
+          osc.connect(parzialeGain);
+          parzialeGain.connect(filtro);
+          osc.start(quando);
+          if (stopA != null) osc.stop(stopA);
+          oscillatori.push(osc);
+        });
+
+        filtro.connect(voceGain);
+        voceGain.connect(uscita);
+
+        return {
+          stop(aQuando) {
+            const t = Math.max(ctx.currentTime, aQuando);
+            const stopFinale = t + rilascio + 0.04;
+            try {
+              voceGain.gain.cancelScheduledValues(t);
+              voceGain.gain.setTargetAtTime(0.0001, t, Math.max(0.01, rilascio / 3));
+              oscillatori.forEach((osc) => osc.stop(stopFinale));
+            } catch (err) {
+              // La voce puo' essere gia' in rilascio.
+            }
+          }
+        };
+      }
+
+      function creaInterfacciaTastiera() {
+        tastieraEl.innerHTML = "";
+        for (let i = 0; i < NOTE_TASTIERA; i += 1) {
+          const midi = midiBaseTastiera + i;
+          const tasto = document.createElement("button");
+          tasto.type = "button";
+          tasto.className = `tasto${noteNera(midi) ? " nero" : ""}`;
+          tasto.dataset.midi = String(midi);
+          tasto.innerHTML = `<span class="nota">${nomeNota(midi)}</span><span class="scorciatoia">${TASTI_PC[i]}</span>`;
+          tasto.setAttribute("aria-label", `Suona ${nomeNota(midi)}`);
+          tasto.addEventListener("pointerdown", (evento) => {
+            evento.preventDefault();
+            tasto.setPointerCapture(evento.pointerId);
+            notaOn(midi, `mouse-${midi}`);
+          });
+          tasto.addEventListener("pointerup", (evento) => {
+            evento.preventDefault();
+            notaOff(`mouse-${midi}`);
+          });
+          tasto.addEventListener("pointercancel", () => notaOff(`mouse-${midi}`));
+          tasto.addEventListener("pointerleave", (evento) => {
+            if (evento.buttons) notaOff(`mouse-${midi}`);
+          });
+          tastieraEl.appendChild(tasto);
+        }
+        aggiornaEtichettaOttave();
+      }
+
+      function tastoDaMidi(midi) {
+        return tastieraEl.querySelector(`[data-midi="${midi}"]`);
+      }
+
+      function aggiornaEtichettaOttave() {
+        const prima = nomeNota(midiBaseTastiera);
+        const ultima = nomeNota(midiBaseTastiera + NOTE_TASTIERA - 1);
+        ottavaLabel.innerHTML = `${prima}<br>${ultima}`;
+        ottavaGiuButton.disabled = midiBaseTastiera <= MIDI_BASE_MIN;
+        ottavaSuButton.disabled = midiBaseTastiera >= MIDI_BASE_MAX;
+      }
+
+      function fermaNoteTastiera() {
+        Array.from(tastiAttivi.keys()).forEach(notaOff);
+        tastiAttivi.clear();
+        noteAttive.clear();
+        tastieraEl.querySelectorAll(".tasto.attivo").forEach((tasto) => tasto.classList.remove("attivo"));
+      }
+
+      function cambiaOttava(delta) {
+        const nuovaBase = Math.min(MIDI_BASE_MAX, Math.max(MIDI_BASE_MIN, midiBaseTastiera + delta * 12));
+        if (nuovaBase === midiBaseTastiera) return;
+        fermaNoteTastiera();
+        midiBaseTastiera = nuovaBase;
+        creaInterfacciaTastiera();
+        setMessaggio(`Range tastiera: ${nomeNota(midiBaseTastiera)} - ${nomeNota(midiBaseTastiera + NOTE_TASTIERA - 1)}.`);
+      }
+
+      async function preparaTastieraAudio() {
+        creaAudioBase();
+        if (audioCtx.state === "suspended") {
+          await audioCtx.resume();
+        }
+      }
+
+      function registraNotaOn(midi, strumento, inizioAssoluto) {
+        const registrazioni = [];
+        tracce.forEach((traccia) => {
+          if (!traccia.registra || traccia.fonteRegistrazione !== "tastiera") return;
+
+          const evento = {
+            nota: midi,
+            strumento,
+            inizio: Math.max(0, inizioAssoluto - traccia.avvioRegistrazione),
+            durata: null
+          };
+          traccia.eventiTastiera.push(evento);
+          registrazioni.push({ traccia, evento });
+        });
+        return registrazioni;
+      }
+
+      function registraNotaOff(registrazioni, fineAssoluta) {
+        registrazioni.forEach(({ traccia, evento }) => {
+          if (!traccia.registra || traccia.fonteRegistrazione !== "tastiera") return;
+          const durata = fineAssoluta - traccia.avvioRegistrazione - evento.inizio;
+          evento.durata = durata <= 0.01 ? 0 : Math.max(0.035, durata);
+        });
+      }
+
+      async function notaOn(midi, id) {
+        if (tastiAttivi.has(id)) return;
+
+        try {
+          await preparaTastieraAudio();
+        } catch (err) {
+          setMessaggio("Audio tastiera non disponibile.");
+          return;
+        }
+
+        const ora = audioCtx.currentTime;
+        const strumento = strumentoTastieraSelect.value;
+        const voce = creaVoceSynth(audioCtx, masterGain, midi, ora, strumento, null);
+        const registrazioni = registraNotaOn(midi, strumento, ora);
+        tastiAttivi.set(id, { midi, strumento, voce, registrazioni });
+        noteAttive.set(midi, (noteAttive.get(midi) || 0) + 1);
+        const tasto = tastoDaMidi(midi);
+        if (tasto) tasto.classList.add("attivo");
+      }
+
+      function notaOff(id) {
+        const attiva = tastiAttivi.get(id);
+        if (!attiva || !audioCtx) return;
+        const ora = audioCtx.currentTime;
+        attiva.voce.stop(ora);
+        registraNotaOff(attiva.registrazioni, ora);
+        tastiAttivi.delete(id);
+
+        const rimaste = Math.max(0, (noteAttive.get(attiva.midi) || 1) - 1);
+        if (rimaste) {
+          noteAttive.set(attiva.midi, rimaste);
+        } else {
+          noteAttive.delete(attiva.midi);
+          const tasto = tastoDaMidi(attiva.midi);
+          if (tasto) tasto.classList.remove("attivo");
+        }
+      }
+
+      function renderTastieraBuffer(eventi, lunghezza, sampleRate) {
+        const durata = lunghezza / sampleRate;
+        const offline = new OfflineAudioContext(1, lunghezza, sampleRate);
+        eventi.forEach((evento) => {
+          const inizio = Math.max(0, Math.min(durata, evento.inizio));
+          const fineMax = durata - inizio;
+          if (fineMax <= 0) return;
+          const durataEvento = Math.min(fineMax, evento.durata == null ? fineMax : evento.durata);
+          if (durataEvento <= 0.01) return;
+          creaVoceSynth(offline, offline.destination, evento.nota, inizio, evento.strumento, durataEvento);
+        });
+        return offline.startRendering();
+      }
+
+      function creaInterfacciaTraccia(traccia) {
+        const riga = document.createElement("article");
+        riga.className = "traccia";
+        riga.style.setProperty("--accento", traccia.colore);
+
+        riga.innerHTML = `
+          <div class="nome-gruppo">
+            <div class="luce" aria-hidden="true"></div>
+            <div class="nome">
+              <h2>${traccia.nome}</h2>
+              <div class="stato">Vuoto</div>
+            </div>
+          </div>
+          <button class="record" type="button" aria-label="Registra ${traccia.nome}">
+            <span>
+              <span class="icona-rec" aria-hidden="true">●</span>
+              <span class="testo-rec">Registra</span>
+            </span>
+          </button>
+          <div class="cerchio-wrap">
+            <div class="cerchio" aria-hidden="true">
+              <div class="centro-cerchio">Vuoto</div>
+            </div>
+          </div>
+          <div class="azioni">
+            <button class="icon-btn silenzia" type="button" aria-label="Silenzia ${traccia.nome}" title="Silenzia">🔊</button>
+            <button class="icon-btn cancella" type="button" aria-label="Cancella ${traccia.nome}" title="Cancella">🗑️</button>
+          </div>
+          <div class="volume">
+            <label for="volume-${traccia.id}">Volume</label>
+            <input id="volume-${traccia.id}" class="volume-slider" type="range" min="0" max="100" value="${Math.round(traccia.volume * 100)}" aria-label="Volume ${traccia.nome}">
+          </div>
+        `;
+
+        tracceEl.appendChild(riga);
+        traccia.el.riga = riga;
+        traccia.el.luce = riga.querySelector(".luce");
+        traccia.el.stato = riga.querySelector(".stato");
+        traccia.el.record = riga.querySelector(".record");
+        traccia.el.iconaRec = riga.querySelector(".icona-rec");
+        traccia.el.testoRec = riga.querySelector(".testo-rec");
+        traccia.el.cerchio = riga.querySelector(".cerchio");
+        traccia.el.centro = riga.querySelector(".centro-cerchio");
+        traccia.el.silenzia = riga.querySelector(".silenzia");
+        traccia.el.cancella = riga.querySelector(".cancella");
+        traccia.el.volume = riga.querySelector(".volume-slider");
+
+        traccia.el.record.addEventListener("click", () => toggleRegistrazione(traccia));
+        traccia.el.silenzia.addEventListener("click", () => toggleMuto(traccia));
+        traccia.el.cancella.addEventListener("click", () => cancellaTraccia(traccia));
+        traccia.el.volume.addEventListener("input", () => {
+          traccia.volume = Number(traccia.el.volume.value) / 100;
+          aggiornaGainTraccia(traccia);
+        });
+
+        aggiornaUITraccia(traccia);
+      }
+
+      function collegaGainTraccia(traccia) {
+        if (!audioCtx || !masterGain || traccia.gain) return;
+        traccia.gain = audioCtx.createGain();
+        traccia.gain.gain.value = traccia.muto ? 0 : traccia.volume;
+        traccia.gain.connect(masterGain);
+      }
+
+      function aggiungiTraccia(esistente) {
+        const traccia = esistente || creaDatiTraccia();
+        tracce.push(traccia);
+        collegaGainTraccia(traccia);
+        creaInterfacciaTraccia(traccia);
+        return traccia;
+      }
+
+      function aggiornaGainTraccia(traccia) {
+        if (!traccia.gain || !audioCtx) return;
+        const valore = traccia.muto ? 0 : traccia.volume;
+        traccia.gain.gain.setTargetAtTime(valore, audioCtx.currentTime, 0.015);
+      }
+
+      function aggiornaUITraccia(traccia) {
+        const haAudio = Boolean(traccia.buffer);
+        traccia.el.luce.classList.toggle("registra", traccia.registra);
+        traccia.el.luce.classList.toggle("suona", !traccia.registra && haAudio && inMarcia && !traccia.muto);
+        traccia.el.record.classList.toggle("ferma", traccia.registra);
+        traccia.el.iconaRec.textContent = traccia.registra ? "■" : "●";
+        traccia.el.testoRec.textContent = traccia.registra ? "Ferma" : "Registra";
+        traccia.el.record.setAttribute("aria-label", `${traccia.registra ? "Ferma" : "Registra"} ${traccia.nome}`);
+        traccia.el.silenzia.textContent = traccia.muto ? "🔇" : "🔊";
+        traccia.el.silenzia.classList.toggle("muto", traccia.muto);
+        traccia.el.silenzia.setAttribute("aria-label", `${traccia.muto ? "Riattiva" : "Silenzia"} ${traccia.nome}`);
+
+        if (traccia.registra) {
+          traccia.el.stato.textContent = traccia.fonteRegistrazione === "tastiera" ? "Registrazione tastiera" : "Registrazione microfono";
+          traccia.el.centro.textContent = traccia.fonteRegistrazione === "tastiera" ? "Tastiera" : "Registra";
+        } else if (!haAudio) {
+          traccia.el.stato.textContent = "Vuoto";
+          traccia.el.centro.textContent = "Vuoto";
+          traccia.el.cerchio.style.setProperty("--progress", "0deg");
+        } else if (traccia.muto) {
+          traccia.el.stato.textContent = "Silenzio";
+          traccia.el.centro.textContent = `${traccia.battute} batt.`;
+        } else if (inMarcia) {
+          traccia.el.stato.textContent = "In riproduzione";
+          traccia.el.centro.textContent = `${traccia.battute} batt.`;
+        } else {
+          traccia.el.stato.textContent = "Pronto";
+          traccia.el.centro.textContent = `${traccia.battute} batt.`;
+        }
+      }
+
+      function aggiornaTutteLeTracce() {
+        tracce.forEach(aggiornaUITraccia);
+      }
+
+      function mostraPermesso() {
+        overlay.classList.add("visibile");
+      }
+
+      function nascondiPermesso() {
+        overlay.classList.remove("visibile");
+      }
+
+      async function assicuratiAudio() {
+        if (audioCtx && audioCtx.state === "suspended") {
+          await audioCtx.resume();
+        }
+
+        if (audioCtx && micStream && (captureNode || scriptCaptureNode)) return;
+        if (richiestaPermessoInCorso) return richiestaPermessoInCorso;
+
+        richiestaPermessoInCorso = preparaAudio();
+        try {
+          await richiestaPermessoInCorso;
+        } finally {
+          richiestaPermessoInCorso = null;
+        }
+      }
+
+      function creaAudioBase() {
+        if (audioCtx) {
+          tracce.forEach(collegaGainTraccia);
+          return;
+        }
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.92;
+        masterGain.connect(audioCtx.destination);
+
+        clickGain = audioCtx.createGain();
+        clickGain.gain.value = 0.42;
+        clickGain.connect(masterGain);
+
+        tracce.forEach(collegaGainTraccia);
+        stimaAnticipoMicrofono();
+      }
+
+      function stimaAnticipoMicrofono() {
+        if (!audioCtx || anticipoMicInput.dataset.modificato === "1") return;
+        const latenzaUscita = Number(audioCtx.outputLatency || 0);
+        const latenzaBase = Number(audioCtx.baseLatency || 0);
+        const stimataMs = Math.round((latenzaUscita + latenzaBase) * 1000 + 45);
+        if (!Number.isFinite(stimataMs) || stimataMs <= 0) return;
+        anticipoMicMs = Math.min(220, Math.max(35, stimataMs));
+        anticipoMicInput.value = String(anticipoMicMs);
+        anticipoMicValore.textContent = String(anticipoMicMs);
+      }
+
+      async function preparaAudio() {
+        setStatoAudio("Richiesta microfono...");
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          setStatoAudio("Microfono non disponibile in questo browser");
+          setMessaggio("Apri questa pagina con un browser moderno e in un contesto sicuro.");
+          throw new Error("Microfono non disponibile");
+        }
+
+        creaAudioBase();
+
+        micStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+            channelCount: 1
+          }
+        });
+
+        const sorgenteMic = audioCtx.createMediaStreamSource(micStream);
+        const muto = audioCtx.createGain();
+        muto.gain.value = 0;
+
+        const workletCode = `
+          class CatturaVoce extends AudioWorkletProcessor {
+            process(inputs) {
+              const input = inputs[0];
+              if (input && input[0]) {
+                const dati = new Float32Array(input[0].length);
+                dati.set(input[0]);
+                this.port.postMessage({ tipo: "audio", frame: currentFrame, dati }, [dati.buffer]);
+              }
+              return true;
+            }
+          }
+          registerProcessor("cattura-voce", CatturaVoce);
+        `;
+
+        try {
+          if (!audioCtx.audioWorklet || typeof AudioWorkletNode === "undefined") {
+            throw new Error("AudioWorklet non disponibile");
+          }
+
+          if (!workletCaricato) {
+            const blob = new Blob([workletCode], { type: "application/javascript" });
+            const url = URL.createObjectURL(blob);
+            try {
+              await audioCtx.audioWorklet.addModule(url);
+              workletCaricato = true;
+            } finally {
+              URL.revokeObjectURL(url);
+            }
+          }
+
+          captureNode = new AudioWorkletNode(audioCtx, "cattura-voce", {
+            numberOfInputs: 1,
+            numberOfOutputs: 1,
+            outputChannelCount: [1]
+          });
+          captureNode.port.onmessage = (evento) => {
+            if (evento.data && evento.data.tipo === "audio") {
+              riceviBloccoAudio(evento.data.frame, evento.data.dati);
+            }
+          };
+          sorgenteMic.connect(captureNode);
+          captureNode.connect(muto);
+          setStatoAudio("Microfono attivo");
+        } catch (err) {
+          scriptCaptureNode = audioCtx.createScriptProcessor(1024, 1, 1);
+          let frameStimato = Math.max(0, Math.round(audioCtx.currentTime * audioCtx.sampleRate));
+          scriptCaptureNode.onaudioprocess = (evento) => {
+            const input = evento.inputBuffer.getChannelData(0);
+            const dati = new Float32Array(input.length);
+            dati.set(input);
+            const frameDaEvento = Number.isFinite(evento.playbackTime)
+              ? Math.round(evento.playbackTime * audioCtx.sampleRate)
+              : frameStimato;
+            const frame = Math.max(0, frameDaEvento);
+            frameStimato = frame + dati.length;
+            riceviBloccoAudio(frame, dati);
+          };
+          sorgenteMic.connect(scriptCaptureNode);
+          scriptCaptureNode.connect(muto);
+          setStatoAudio("Microfono attivo");
+          setMessaggio("Microfono attivo con cattura compatibile.");
+        }
+
+        muto.connect(audioCtx.destination);
+
+        nascondiPermesso();
+      }
+
+      function riceviBloccoAudio(frame, dati) {
+        tracce.forEach((traccia) => {
+          if (!traccia.registra) return;
+          if (traccia.fonteRegistrazione !== "mic") return;
+
+          const inizio = frame;
+          const fine = frame + dati.length;
+          const limiteStop = traccia.stopFrame || Infinity;
+          const da = Math.max(inizio, traccia.avvioFrame);
+          const a = Math.min(fine, limiteStop);
+
+          if (a > da) {
+            const start = da - inizio;
+            const end = a - inizio;
+            const porzione = dati.slice(start, end);
+            traccia.pezzi.push(porzione);
+            traccia.frameRegistrati += porzione.length;
+          }
+
+          if (traccia.stopFrame && fine >= traccia.stopFrame) {
+            finalizzaRegistrazione(traccia);
+          }
+        });
+      }
+
+      function prossimoInizioBattuta(tempo) {
+        if (!inMarcia) return tempo;
+        const d = durataBattuta();
+        const passate = Math.ceil((tempo - avvioTrasporto) / d);
+        return avvioTrasporto + Math.max(0, passate) * d;
+      }
+
+      async function toggleRegistrazione(traccia) {
+        if (traccia.registra) {
+          fermaRegistrazione(traccia);
+          return;
+        }
+
+        const fonte = recTastieraInput.checked ? "tastiera" : "mic";
+        try {
+          if (fonte === "tastiera") {
+            await preparaTastieraAudio();
+          } else {
+            await assicuratiAudio();
+          }
+        } catch (err) {
+          if (fonte === "mic") mostraPermesso();
+          setMessaggio(fonte === "mic" ? "Serve il microfono per registrare." : "Audio tastiera non disponibile.");
+          return;
+        }
+
+        if (!inMarcia) {
+          avviaTrasporto();
+        }
+
+        avviaRegistrazione(traccia, fonte);
+      }
+
+      function avviaRegistrazione(traccia, fonte) {
+        fermaSorgentiTraccia(traccia);
+        traccia.buffer = null;
+        traccia.battute = 0;
+        traccia.pezzi = [];
+        traccia.eventiTastiera = [];
+        traccia.frameRegistrati = 0;
+        traccia.stopFrame = 0;
+        traccia.fonteRegistrazione = fonte;
+        traccia.faseOffset = 0;
+        traccia.faseOffsetBattute = 0;
+        traccia.durataBattutaRegistrazione = durataBattuta();
+        const primoLoop = !esistonoLoop(traccia);
+        traccia.preservaFaseRegistrazione = false;
+        traccia.registra = true;
+
+        const inizio = fonte === "tastiera" && primoLoop
+          ? audioCtx.currentTime
+          : prossimoInizioBattuta(audioCtx.currentTime + 0.06);
+        traccia.avvioRegistrazione = inizio;
+        traccia.avvioFrame = Math.round(inizio * audioCtx.sampleRate);
+
+        if (fonte === "tastiera") {
+          tastiAttivi.forEach((attiva) => {
+            const evento = {
+              nota: attiva.midi,
+              strumento: attiva.strumento || strumentoTastieraSelect.value,
+              inizio: 0,
+              durata: null
+            };
+            traccia.eventiTastiera.push(evento);
+            attiva.registrazioni.push({ traccia, evento });
+          });
+        }
+
+        aggiornaUITraccia(traccia);
+        setMessaggio(fonte === "tastiera"
+          ? `${traccia.nome}: registrazione tastiera attiva.`
+          : `${traccia.nome}: registrazione microfono dalla prossima battuta.`);
+      }
+
+      function fermaRegistrazione(traccia) {
+        if (!audioCtx || !traccia.registra || traccia.stopFrame) return;
+
+        const durataBarra = traccia.durataBattutaRegistrazione || durataBattuta();
+        const durataGrezza = Math.max(0, audioCtx.currentTime - traccia.avvioRegistrazione);
+        const battute = battuteQuantizzate(durataGrezza, durataBarra);
+        const durataEsatta = battute * durataBarra;
+        traccia.battute = battute;
+        traccia.stopFrame = traccia.avvioFrame + Math.max(1, Math.round(durataEsatta * audioCtx.sampleRate));
+        setMessaggio(`${traccia.nome}: chiusura su ${battute} ${battute === 1 ? "battuta" : "battute"}.`);
+
+        if (traccia.fonteRegistrazione === "tastiera") {
+          finalizzaRegistrazione(traccia);
+          return;
+        }
+
+        if (audioCtx.currentTime * audioCtx.sampleRate >= traccia.stopFrame) {
+          finalizzaRegistrazione(traccia);
+        }
+      }
+
+      function finalizzaRegistrazione(traccia) {
+        if (!traccia.registra || !traccia.stopFrame) return;
+
+        const lunghezza = Math.max(1, traccia.stopFrame - traccia.avvioFrame);
+        const durataFinale = lunghezza / audioCtx.sampleRate;
+        const durataBarra = traccia.durataBattutaRegistrazione || durataBattuta();
+        const chiusuraTempo = traccia.avvioRegistrazione + durataFinale;
+
+        if (traccia.fonteRegistrazione === "tastiera") {
+          const eventiGrezzi = traccia.eventiTastiera
+            .map((evento) => ({
+              ...evento,
+              inizio: Math.max(0, evento.inizio),
+              durata: evento.durata == null ? durataFinale - Math.max(0, evento.inizio) : evento.durata
+            }))
+            .filter((evento) => evento.inizio < durataFinale && evento.durata > 0.01);
+          const primoEvento = eventiGrezzi.length
+            ? eventiGrezzi.reduce((min, evento) => Math.min(min, evento.inizio), Infinity)
+            : 0;
+          const primoEventoAssoluto = traccia.avvioRegistrazione + primoEvento;
+          const durataDaPrimaNota = Math.max(0.05, durataFinale - primoEvento);
+          const battuteRender = battuteQuantizzate(durataDaPrimaNota, durataBarra);
+          const lunghezzaRender = Math.max(1, Math.round(battuteRender * durataBarra * audioCtx.sampleRate));
+          const durataRender = lunghezzaRender / audioCtx.sampleRate;
+          const loopChiusuraTempo = traccia.avvioRegistrazione + primoEvento + durataRender;
+          if (!esistonoLoop(traccia) && primoEventoAssoluto > 0) {
+            avvioTrasporto = primoEventoAssoluto;
+            prossimoBattito = Math.max(0, Math.floor((audioCtx.currentTime - avvioTrasporto) / durataBeat()) + 1);
+          }
+          traccia.faseOffsetBattute = faseBattuteDaTempo(loopChiusuraTempo, durataBarra, battuteRender);
+          traccia.faseOffset = traccia.faseOffsetBattute * durataBarra;
+          const eventi = eventiGrezzi
+            .map((evento) => ({
+              ...evento,
+              inizio: Math.max(0, evento.inizio - primoEvento),
+              durata: Math.min(evento.durata, Math.max(0, durataRender - Math.max(0, evento.inizio - primoEvento)))
+            }))
+            .filter((evento) => evento.durata > 0.01);
+
+          traccia.registra = false;
+          traccia.pezzi = [];
+          traccia.eventiTastiera = [];
+          traccia.frameRegistrati = 0;
+          traccia.stopFrame = 0;
+          aggiornaUITraccia(traccia);
+          setMessaggio(`${traccia.nome}: creo il giro tastiera.`);
+
+          renderTastieraBuffer(eventi, lunghezzaRender, audioCtx.sampleRate)
+            .then((buffer) => {
+              traccia.buffer = buffer;
+              traccia.battute = battuteRender;
+              traccia.durataBattutaRegistrazione = 0;
+              traccia.preservaFaseRegistrazione = false;
+              if (inMarcia) {
+                avviaLoopAppenaRegistrato(traccia, loopChiusuraTempo);
+              }
+              aggiornaUITraccia(traccia);
+              setMessaggio(eventi.length
+                ? `${traccia.nome}: giro tastiera pronto dalla prima nota.`
+                : `${traccia.nome}: giro tastiera vuoto.`);
+            })
+            .catch(() => {
+              traccia.buffer = audioCtx.createBuffer(1, lunghezzaRender, audioCtx.sampleRate);
+              traccia.battute = battuteRender;
+              traccia.durataBattutaRegistrazione = 0;
+              traccia.preservaFaseRegistrazione = false;
+              if (inMarcia) {
+                avviaLoopAppenaRegistrato(traccia, loopChiusuraTempo);
+              }
+              aggiornaUITraccia(traccia);
+              setMessaggio(`${traccia.nome}: giro tastiera vuoto.`);
+            });
+          return;
+        }
+
+        const pcm = new Float32Array(lunghezza);
+        const raw = new Float32Array(lunghezza);
+        let offset = 0;
+
+        for (const pezzo of traccia.pezzi) {
+          if (offset >= lunghezza) break;
+          const n = Math.min(pezzo.length, lunghezza - offset);
+          raw.set(pezzo.subarray(0, n), offset);
+          offset += n;
+        }
+
+        const anticipoFrame = Math.min(lunghezza - 1, Math.max(0, Math.round((anticipoMicMs / 1000) * audioCtx.sampleRate)));
+        if (anticipoFrame > 0) {
+          pcm.set(raw.subarray(anticipoFrame));
+        } else {
+          pcm.set(raw);
+        }
+
+        const buffer = audioCtx.createBuffer(1, lunghezza, audioCtx.sampleRate);
+        buffer.copyToChannel(pcm, 0);
+
+        traccia.buffer = buffer;
+        traccia.battute = Math.max(1, traccia.battute || battuteQuantizzate(lunghezza / audioCtx.sampleRate, durataBarra));
+        traccia.registra = false;
+        traccia.pezzi = [];
+        traccia.eventiTastiera = [];
+        traccia.frameRegistrati = 0;
+        traccia.stopFrame = 0;
+        traccia.faseOffsetBattute = faseBattuteDaTempo(chiusuraTempo, durataBarra, traccia.battute);
+        traccia.faseOffset = traccia.faseOffsetBattute * durataBarra;
+        traccia.durataBattutaRegistrazione = 0;
+        traccia.preservaFaseRegistrazione = false;
+
+        if (inMarcia) {
+          avviaLoopAppenaRegistrato(traccia, chiusuraTempo);
+        }
+
+        aggiornaUITraccia(traccia);
+        setMessaggio(`${traccia.nome}: giro pronto.`);
+      }
+
+      function avviaTrasporto() {
+        if (!audioCtx || inMarcia) return;
+        inMarcia = true;
+        avvioTrasporto = audioCtx.currentTime + 0.08;
+        prossimoBattito = 0;
+        tracce.forEach((traccia) => {
+          fermaSorgentiTraccia(traccia);
+          traccia.schedulatoFino = 0;
+        });
+        playGlobaleButton.classList.add("attivo");
+        setMessaggio("In marcia.");
+        aggiornaTutteLeTracce();
+        avviaTimer();
+        avviaAnimazione();
+      }
+
+      function fermaTrasporto() {
+        if (!audioCtx) return;
+        inMarcia = false;
+        tracce.forEach((traccia) => {
+          if (traccia.registra) fermaRegistrazione(traccia);
+          fermaSorgentiTraccia(traccia);
+          traccia.schedulatoFino = 0;
+        });
+        playGlobaleButton.classList.remove("attivo");
+        fermaTimer();
+        setMessaggio("Fermo.");
+        aggiornaTutteLeTracce();
+      }
+
+      async function playGlobale() {
+        try {
+          creaAudioBase();
+          if (audioCtx.state === "suspended") {
+            await audioCtx.resume();
+          }
+        } catch (err) {
+          setMessaggio("Audio non disponibile.");
+          return;
+        }
+
+        avviaTrasporto();
+      }
+
+      function avviaTimer() {
+        fermaTimer();
+        timer = window.setInterval(scheduler, INTERVALLO_TIMER);
+        scheduler();
+      }
+
+      function fermaTimer() {
+        if (timer) {
+          window.clearInterval(timer);
+          timer = null;
+        }
+      }
+
+      function scheduler() {
+        if (!audioCtx || !inMarcia) return;
+        const ora = audioCtx.currentTime;
+        const fino = ora + LOOKAHEAD;
+        schedulaMetronomo(ora, fino);
+        tracce.forEach((traccia) => schedulaTraccia(traccia, ora, fino));
+        pulisciSorgenti(ora);
+      }
+
+      function schedulaMetronomo(ora, fino) {
+        if (!metronomoInput.checked) return;
+        const beat = durataBeat();
+
+        while (avvioTrasporto + prossimoBattito * beat < fino) {
+          const quando = avvioTrasporto + prossimoBattito * beat;
+          if (quando >= ora - 0.01) {
+            const primo = prossimoBattito % 4 === 0;
+            click(quando, primo);
+            programmaFlash(quando);
+          }
+          prossimoBattito += 1;
+        }
+      }
+
+      function click(quando, primo) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(primo ? 1320 : 830, quando);
+        gain.gain.setValueAtTime(0.0001, quando);
+        gain.gain.exponentialRampToValueAtTime(primo ? 0.42 : 0.26, quando + 0.004);
+        gain.gain.exponentialRampToValueAtTime(0.0001, quando + 0.055);
+        osc.connect(gain);
+        gain.connect(clickGain);
+        osc.start(quando);
+        osc.stop(quando + 0.06);
+      }
+
+      function programmaFlash(quando) {
+        const ritardo = Math.max(0, (quando - audioCtx.currentTime) * 1000);
+        window.setTimeout(() => {
+          if (!inMarcia || !metronomoInput.checked) return;
+          flashEl.classList.add("acceso");
+          window.setTimeout(() => flashEl.classList.remove("acceso"), 75);
+        }, ritardo);
+      }
+
+      function durataLoopTraccia(traccia) {
+        return Math.max(durataBattuta(), traccia.battute * durataBattuta());
+      }
+
+      function avviaLoopAppenaRegistrato(traccia, chiusuraTempo) {
+        if (!audioCtx || !inMarcia || !traccia.buffer) return;
+
+        const loopDurata = durataLoopTraccia(traccia);
+        const ora = audioCtx.currentTime;
+        const quando = Math.max(ora + 0.012, chiusuraTempo);
+        const offset = Math.max(0, quando - chiusuraTempo);
+
+        if (offset < loopDurata && Math.abs(loopDurata - traccia.buffer.duration) < 0.02) {
+          const sorgente = audioCtx.createBufferSource();
+          sorgente.buffer = traccia.buffer;
+          sorgente.connect(traccia.gain);
+          sorgente.start(quando, Math.min(offset, traccia.buffer.duration), Math.max(0.02, traccia.buffer.duration - offset));
+          sorgente.stop(quando + Math.max(0.02, loopDurata - offset) + 0.025);
+          traccia.sorgenti.push({ nodo: sorgente, fine: quando + Math.max(0.02, loopDurata - offset) + 0.04 });
+        }
+
+        const passati = Math.max(0, Math.floor((ora - chiusuraTempo) / loopDurata) + 1);
+        traccia.schedulatoFino = chiusuraTempo + passati * loopDurata;
+      }
+
+      function prossimoConfineLoop(tempo, loopDurata, faseOffset = 0) {
+        const origine = avvioTrasporto + modPositivo(faseOffset, loopDurata);
+        const indice = Math.ceil((tempo - origine) / loopDurata);
+        return origine + Math.max(0, indice) * loopDurata;
+      }
+
+      function preparaSchedulazioneTraccia(traccia, daTempo) {
+        fermaSorgentiTraccia(traccia);
+        if (!traccia.buffer || !inMarcia) return;
+        const loopDurata = durataLoopTraccia(traccia);
+        traccia.schedulatoFino = prossimoConfineLoop(daTempo, loopDurata, faseOffsetTraccia(traccia));
+      }
+
+      function schedulaTraccia(traccia, ora, fino) {
+        if (!traccia.buffer || !traccia.gain) return;
+        if (!inMarcia) return;
+
+        const loopDurata = durataLoopTraccia(traccia);
+        if (!Number.isFinite(loopDurata) || loopDurata <= 0) return;
+
+        const origine = avvioTrasporto + modPositivo(faseOffsetTraccia(traccia), loopDurata);
+
+        if (!traccia.schedulatoFino || traccia.schedulatoFino < origine - loopDurata) {
+          traccia.schedulatoFino = origine;
+        }
+
+        if (traccia.schedulatoFino < ora - 0.02) {
+          traccia.schedulatoFino = prossimoConfineLoop(ora + 0.02, loopDurata, faseOffsetTraccia(traccia));
+        }
+
+        while (traccia.schedulatoFino < fino) {
+          schedulaGiro(traccia, traccia.schedulatoFino, loopDurata);
+          traccia.schedulatoFino += loopDurata;
+        }
+      }
+
+      function schedulaGiro(traccia, quando, loopDurata) {
+        const rapporto = loopDurata / traccia.buffer.duration;
+        if (Math.abs(rapporto - 1) < 0.006) {
+          schedulaGiroNormale(audioCtx, traccia.buffer, traccia.gain, quando, loopDurata, traccia.sorgenti);
+          return;
+        }
+
+        schedulaGiroGranulare(audioCtx, traccia.buffer, traccia.gain, quando, loopDurata, traccia.sorgenti);
+      }
+
+      function schedulaGiroNormale(ctx, buffer, uscita, quando, loopDurata, raccolta) {
+        const sorgente = ctx.createBufferSource();
+        sorgente.buffer = buffer;
+        sorgente.connect(uscita);
+        sorgente.start(quando, 0, buffer.duration);
+        sorgente.stop(quando + loopDurata + 0.025);
+        if (raccolta) raccolta.push({ nodo: sorgente, fine: quando + loopDurata + 0.04 });
+      }
+
+      function schedulaGiroGranulare(ctx, buffer, uscita, quando, loopDurata, raccolta) {
+        const durataBuffer = buffer.duration;
+        const passo = Math.min(GRANO_PASSO, Math.max(0.012, loopDurata / 18));
+        const durataGrano = Math.min(GRANO_DURATA, Math.max(0.026, loopDurata / 8));
+        const fade = Math.min(0.014, passo * 0.45, durataGrano * 0.28);
+        const livello = Math.min(1, (passo / durataGrano) * 1.45);
+
+        for (let uscitaPos = 0; uscitaPos < loopDurata; uscitaPos += passo) {
+          const sorgentePos = (uscitaPos / loopDurata) * durataBuffer;
+          if (sorgentePos >= durataBuffer) break;
+
+          const durata = Math.min(durataGrano, durataBuffer - sorgentePos, loopDurata - uscitaPos);
+          if (durata <= 0.008) continue;
+
+          const t = quando + uscitaPos;
+          const sorgente = ctx.createBufferSource();
+          const inviluppo = ctx.createGain();
+          sorgente.buffer = buffer;
+          sorgente.playbackRate.setValueAtTime(1, t);
+          inviluppo.gain.setValueAtTime(0.0001, t);
+          inviluppo.gain.linearRampToValueAtTime(livello, t + fade);
+          inviluppo.gain.setValueAtTime(livello, Math.max(t + fade, t + durata - fade));
+          inviluppo.gain.linearRampToValueAtTime(0.0001, t + durata);
+          sorgente.connect(inviluppo);
+          inviluppo.connect(uscita);
+          sorgente.start(t, sorgentePos, durata);
+          sorgente.stop(t + durata + 0.01);
+          if (raccolta) raccolta.push({ nodo: sorgente, fine: t + durata + 0.02 });
+        }
+      }
+
+      function fermaSorgentiTraccia(traccia) {
+        traccia.sorgenti.forEach((voce) => {
+          try {
+            voce.nodo.stop();
+          } catch (err) {
+            // Gia' fermo.
+          }
+        });
+        traccia.sorgenti = [];
+      }
+
+      function pulisciSorgenti(ora) {
+        tracce.forEach((traccia) => {
+          traccia.sorgenti = traccia.sorgenti.filter((voce) => voce.fine > ora);
+        });
+      }
+
+      function toggleMuto(traccia) {
+        traccia.muto = !traccia.muto;
+        aggiornaGainTraccia(traccia);
+        aggiornaUITraccia(traccia);
+      }
+
+      function cancellaTraccia(traccia) {
+        fermaSorgentiTraccia(traccia);
+        traccia.buffer = null;
+        traccia.battute = 0;
+        traccia.registra = false;
+        traccia.pezzi = [];
+        traccia.eventiTastiera = [];
+        traccia.frameRegistrati = 0;
+        traccia.stopFrame = 0;
+        traccia.schedulatoFino = 0;
+        traccia.faseOffset = 0;
+        traccia.faseOffsetBattute = 0;
+        traccia.preservaFaseRegistrazione = false;
+        aggiornaUITraccia(traccia);
+        setMessaggio(`${traccia.nome}: cancellata.`);
+      }
+
+      function avviaAnimazione() {
+        if (animazione) return;
+
+        const frame = () => {
+          aggiornaProgressi();
+          animazione = window.requestAnimationFrame(frame);
+        };
+
+        animazione = window.requestAnimationFrame(frame);
+      }
+
+      function aggiornaProgressi() {
+        if (!audioCtx) return;
+        const ora = audioCtx.currentTime;
+
+        tracce.forEach((traccia) => {
+          if (traccia.registra) {
+            const base = durataBattuta();
+            const daInizio = Math.max(0, ora - traccia.avvioRegistrazione);
+            const fase = modPositivo(daInizio, base) / base;
+            traccia.el.cerchio.style.setProperty("--progress", `${Math.round(fase * 360)}deg`);
+            return;
+          }
+
+          if (!traccia.buffer || !inMarcia) {
+            if (!traccia.buffer) traccia.el.cerchio.style.setProperty("--progress", "0deg");
+            return;
+          }
+
+          const loopDurata = durataLoopTraccia(traccia);
+          const fase = modPositivo(ora - avvioTrasporto - faseOffsetTraccia(traccia), loopDurata) / loopDurata;
+          traccia.el.cerchio.style.setProperty("--progress", `${Math.round(fase * 360)}deg`);
+        });
+      }
+
+      function risincronizzaDopoCambioBpm() {
+        if (!audioCtx || !inMarcia) return;
+        prossimoBattito = Math.max(0, Math.floor((audioCtx.currentTime - avvioTrasporto) / durataBeat()) + 1);
+        tracce.forEach((traccia) => {
+          if (traccia.buffer) preparaSchedulazioneTraccia(traccia, audioCtx.currentTime + 0.06);
+        });
+      }
+
+      function registrazioniInCorso() {
+        return tracce.some((traccia) => traccia.registra);
+      }
+
+      function campoTestoAttivo() {
+        const tag = document.activeElement ? document.activeElement.tagName : "";
+        return ["INPUT", "TEXTAREA"].includes(tag);
+      }
+
+      function midiDaTastoPc(tasto) {
+        const indice = TASTI_PC.indexOf(tasto.toUpperCase());
+        return indice === -1 ? null : midiBaseTastiera + indice;
+      }
+
+      function scaricaBlob(blob, nomeFile) {
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = nomeFile;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+
+      function timbroFile() {
+        const d = new Date();
+        const due = (n) => String(n).padStart(2, "0");
+        return `${d.getFullYear()}-${due(d.getMonth() + 1)}-${due(d.getDate())}_${due(d.getHours())}-${due(d.getMinutes())}`;
+      }
+
+      function float32ToBase64(float32) {
+        const bytes = new Uint8Array(float32.buffer.slice(float32.byteOffset, float32.byteOffset + float32.byteLength));
+        let binario = "";
+        const blocco = 0x8000;
+        for (let i = 0; i < bytes.length; i += blocco) {
+          binario += String.fromCharCode(...bytes.subarray(i, i + blocco));
+        }
+        return btoa(binario);
+      }
+
+      function base64ToFloat32(base64) {
+        const binario = atob(base64);
+        const bytes = new Uint8Array(binario.length);
+        for (let i = 0; i < binario.length; i += 1) {
+          bytes[i] = binario.charCodeAt(i);
+        }
+        return new Float32Array(bytes.buffer);
+      }
+
+      function salvaProgetto() {
+        if (registrazioniInCorso()) {
+          setMessaggio("Ferma la registrazione prima di salvare.");
+          return;
+        }
+
+        const progetto = {
+          tipo: "loop-station-vocale",
+          versione: 2,
+          bpm: bpm(),
+          metronomo: metronomoInput.checked,
+          anticipoMicMs,
+          tastiera: {
+            strumento: strumentoTastieraSelect.value,
+            rec: recTastieraInput.checked,
+            midiBase: midiBaseTastiera
+          },
+          tracce: tracce.map((traccia) => {
+            const dati = {
+              nome: traccia.nome,
+              colore: traccia.colore,
+              volume: traccia.volume,
+              muto: traccia.muto,
+              battute: traccia.battute,
+              faseOffsetBattute: Number(traccia.faseOffsetBattute) || 0,
+              sampleRate: traccia.buffer ? traccia.buffer.sampleRate : 0,
+              audio: null
+            };
+
+            if (traccia.buffer) {
+              dati.audio = float32ToBase64(traccia.buffer.getChannelData(0));
+            }
+
+            return dati;
+          })
+        };
+
+        const blob = new Blob([JSON.stringify(progetto)], { type: "application/json" });
+        scaricaBlob(blob, `loop-station-progetto_${timbroFile()}.json`);
+        setMessaggio("Progetto salvato.");
+      }
+
+      async function caricaProgettoDaFile(file) {
+        if (!file) return;
+        const testo = await file.text();
+        const progetto = JSON.parse(testo);
+
+        if (!progetto || progetto.tipo !== "loop-station-vocale" || !Array.isArray(progetto.tracce)) {
+          throw new Error("Formato progetto non valido");
+        }
+
+        if (inMarcia) fermaTrasporto();
+        creaAudioBase();
+
+        tracce.forEach(fermaSorgentiTraccia);
+        tracce.splice(0, tracce.length);
+        tracceEl.innerHTML = "";
+        prossimoIdTraccia = 0;
+
+        bpmInput.value = Math.min(180, Math.max(60, Number(progetto.bpm) || 120));
+        bpmValore.textContent = bpmInput.value;
+        metronomoInput.checked = Boolean(progetto.metronomo);
+        if (progetto.anticipoMicMs != null) {
+          anticipoMicMs = Math.min(220, Math.max(0, Number(progetto.anticipoMicMs) || 0));
+          anticipoMicInput.value = String(anticipoMicMs);
+          anticipoMicValore.textContent = String(anticipoMicMs);
+          anticipoMicInput.dataset.modificato = "1";
+        }
+        if (progetto.tastiera) {
+          strumentoTastieraSelect.value = progetto.tastiera.strumento || "morbido";
+          recTastieraInput.checked = Boolean(progetto.tastiera.rec);
+          midiBaseTastiera = Math.min(MIDI_BASE_MAX, Math.max(MIDI_BASE_MIN, Number(progetto.tastiera.midiBase) || MIDI_BASE_DEFAULT));
+          creaInterfacciaTastiera();
+        }
+
+        progetto.tracce.forEach((dato) => {
+          const traccia = creaDatiTraccia();
+          traccia.nome = dato.nome || traccia.nome;
+          traccia.colore = dato.colore || traccia.colore;
+          traccia.volume = Math.min(1, Math.max(0, Number(dato.volume) || 0));
+          traccia.muto = Boolean(dato.muto);
+          traccia.battute = Math.max(0, Number(dato.battute) || 0);
+          traccia.faseOffsetBattute = Math.max(0, Number(dato.faseOffsetBattute) || 0);
+          traccia.faseOffset = traccia.faseOffsetBattute * durataBattuta();
+
+          if (dato.audio && dato.sampleRate) {
+            const pcm = base64ToFloat32(dato.audio);
+            const buffer = audioCtx.createBuffer(1, pcm.length, Number(dato.sampleRate));
+            buffer.copyToChannel(pcm, 0);
+            traccia.buffer = buffer;
+          }
+
+          aggiungiTraccia(traccia);
+        });
+
+        while (tracce.length < TRACCE_INIZIALI) {
+          aggiungiTraccia();
+        }
+
+        aggiornaTutteLeTracce();
+        setMessaggio("Progetto caricato.");
+      }
+
+      function massimoComunDivisore(a, b) {
+        let x = Math.abs(a);
+        let y = Math.abs(b);
+        while (y) {
+          const t = y;
+          y = x % y;
+          x = t;
+        }
+        return x || 1;
+      }
+
+      function minimoComuneMultiplo(a, b) {
+        return Math.abs(a * b) / massimoComunDivisore(a, b);
+      }
+
+      function tracceEsportabili() {
+        return tracce.filter((traccia) => traccia.buffer && !traccia.muto && traccia.volume > 0);
+      }
+
+      function durataExportBattute(attive) {
+        return attive.reduce((totale, traccia) => minimoComuneMultiplo(totale, Math.max(1, traccia.battute || 1)), 1);
+      }
+
+      async function renderMixOffline() {
+        if (registrazioniInCorso()) {
+          throw new Error("Ferma la registrazione prima di esportare");
+        }
+
+        const attive = tracceEsportabili();
+        if (!attive.length) {
+          throw new Error("Nessuna voce attiva da esportare");
+        }
+
+        const battuteTotali = durataExportBattute(attive);
+        const durata = battuteTotali * durataBattuta();
+        if (durata > 600) {
+          throw new Error("Export troppo lungo: riduci il numero di battute");
+        }
+
+        const sampleRate = audioCtx ? audioCtx.sampleRate : (attive[0].buffer.sampleRate || 44100);
+        const frame = Math.max(1, Math.ceil(durata * sampleRate));
+        const offline = new OfflineAudioContext(2, frame, sampleRate);
+
+        attive.forEach((traccia) => {
+          const loopDurata = Math.max(durataBattuta(), (traccia.battute || 1) * durataBattuta());
+          const offset = modPositivo(faseOffsetTraccia(traccia), loopDurata);
+          const gain = offline.createGain();
+          gain.gain.value = traccia.volume;
+          gain.connect(offline.destination);
+
+          for (let quando = offset; quando < durata; quando += loopDurata) {
+            const durataCiclo = Math.min(loopDurata, durata - quando);
+            const rapporto = loopDurata / traccia.buffer.duration;
+            if (Math.abs(rapporto - 1) < 0.006) {
+              schedulaGiroNormale(offline, traccia.buffer, gain, quando, durataCiclo, null);
+            } else {
+              schedulaGiroGranulare(offline, traccia.buffer, gain, quando, durataCiclo, null);
+            }
+          }
+        });
+
+        return offline.startRendering();
+      }
+
+      function codificaWav(buffer) {
+        const canali = buffer.numberOfChannels;
+        const sampleRate = buffer.sampleRate;
+        const campioni = buffer.length;
+        const bytePerCampione = 2;
+        const blockAlign = canali * bytePerCampione;
+        const dataSize = campioni * blockAlign;
+        const arrayBuffer = new ArrayBuffer(44 + dataSize);
+        const view = new DataView(arrayBuffer);
+        const scrivi = (offset, testo) => {
+          for (let i = 0; i < testo.length; i += 1) {
+            view.setUint8(offset + i, testo.charCodeAt(i));
+          }
+        };
+
+        scrivi(0, "RIFF");
+        view.setUint32(4, 36 + dataSize, true);
+        scrivi(8, "WAVE");
+        scrivi(12, "fmt ");
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, canali, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * blockAlign, true);
+        view.setUint16(32, blockAlign, true);
+        view.setUint16(34, 16, true);
+        scrivi(36, "data");
+        view.setUint32(40, dataSize, true);
+
+        const datiCanali = Array.from({ length: canali }, (_, i) => buffer.getChannelData(i));
+        let offset = 44;
+        for (let i = 0; i < campioni; i += 1) {
+          for (let c = 0; c < canali; c += 1) {
+            const v = Math.max(-1, Math.min(1, datiCanali[c][i]));
+            view.setInt16(offset, v < 0 ? v * 0x8000 : v * 0x7fff, true);
+            offset += 2;
+          }
+        }
+
+        return new Blob([arrayBuffer], { type: "audio/wav" });
+      }
+
+      async function esportaWav() {
+        esportaWavButton.disabled = true;
+        esportaMp3Button.disabled = true;
+        setMessaggio("Creo il WAV...");
+        try {
+          const buffer = await renderMixOffline();
+          const wav = codificaWav(buffer);
+          scaricaBlob(wav, `loop-station_${timbroFile()}.wav`);
+          setMessaggio("WAV esportato.");
+        } catch (err) {
+          setMessaggio(err.message || "Export WAV non riuscito.");
+        } finally {
+          esportaWavButton.disabled = false;
+          esportaMp3Button.disabled = false;
+        }
+      }
+
+      async function registraBufferConMediaRecorder(buffer, mimeType) {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: buffer.sampleRate });
+        const destinazione = ctx.createMediaStreamDestination();
+        const sorgente = ctx.createBufferSource();
+        const copia = ctx.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+
+        for (let c = 0; c < buffer.numberOfChannels; c += 1) {
+          copia.copyToChannel(buffer.getChannelData(c), c);
+        }
+
+        sorgente.buffer = copia;
+        sorgente.connect(destinazione);
+
+        return new Promise((resolve, reject) => {
+          const pezzi = [];
+          const recorder = new MediaRecorder(destinazione.stream, { mimeType });
+          recorder.ondataavailable = (evento) => {
+            if (evento.data && evento.data.size) pezzi.push(evento.data);
+          };
+          recorder.onerror = () => {
+            ctx.close();
+            reject(new Error("Encoder MP3 non riuscito"));
+          };
+          recorder.onstop = async () => {
+            await ctx.close();
+            resolve(new Blob(pezzi, { type: mimeType }));
+          };
+          sorgente.onended = () => {
+            if (recorder.state !== "inactive") recorder.stop();
+          };
+          recorder.start();
+          sorgente.start();
+          sorgente.stop(ctx.currentTime + buffer.duration);
+        });
+      }
+
+      async function esportaMp3() {
+        const tipi = ["audio/mpeg", "audio/mp3"];
+        const mime = typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported
+          ? tipi.find((tipo) => MediaRecorder.isTypeSupported(tipo))
+          : "";
+
+        if (!mime) {
+          setMessaggio("MP3 non disponibile in questo browser: esporta WAV.");
+          return;
+        }
+
+        esportaWavButton.disabled = true;
+        esportaMp3Button.disabled = true;
+        setMessaggio("Creo il mix, poi l'MP3...");
+        try {
+          const buffer = await renderMixOffline();
+          const mp3 = await registraBufferConMediaRecorder(buffer, mime);
+          scaricaBlob(mp3, `loop-station_${timbroFile()}.mp3`);
+          setMessaggio("MP3 esportato.");
+        } catch (err) {
+          setMessaggio(err.message || "Export MP3 non riuscito.");
+        } finally {
+          esportaWavButton.disabled = false;
+          esportaMp3Button.disabled = false;
+        }
+      }
+
+      bpmInput.addEventListener("input", () => {
+        bpmValore.textContent = bpmInput.value;
+        risincronizzaDopoCambioBpm();
+      });
+
+      metronomoInput.addEventListener("change", () => {
+        if (metronomoInput.checked) {
+          prossimoBattito = audioCtx && inMarcia
+            ? Math.max(0, Math.floor((audioCtx.currentTime - avvioTrasporto) / durataBeat()) + 1)
+            : 0;
+        }
+      });
+
+      anticipoMicInput.addEventListener("input", () => {
+        anticipoMicMs = Number(anticipoMicInput.value);
+        anticipoMicValore.textContent = String(anticipoMicMs);
+        anticipoMicInput.dataset.modificato = "1";
+      });
+
+      recTastieraInput.addEventListener("change", () => {
+        setMessaggio(recTastieraInput.checked ? "REC tastiera attivo: registra la tastiera." : "REC tastiera spento: registra il microfono.");
+      });
+
+      strumentoTastieraSelect.addEventListener("change", () => {
+        strumentoTastieraSelect.blur();
+        setMessaggio(`Strumento tastiera: ${strumentoTastieraSelect.options[strumentoTastieraSelect.selectedIndex].text}.`);
+      });
+
+      ottavaGiuButton.addEventListener("click", () => cambiaOttava(-1));
+      ottavaSuButton.addEventListener("click", () => cambiaOttava(1));
+
+      window.addEventListener("keydown", (evento) => {
+        if (evento.repeat || campoTestoAttivo()) return;
+        const midi = midiDaTastoPc(evento.key);
+        if (midi == null) return;
+        evento.preventDefault();
+        notaOn(midi, `pc-${evento.key.toUpperCase()}`);
+      });
+
+      window.addEventListener("keyup", (evento) => {
+        const midi = midiDaTastoPc(evento.key);
+        if (midi == null) return;
+        evento.preventDefault();
+        notaOff(`pc-${evento.key.toUpperCase()}`);
+      });
+
+      playGlobaleButton.addEventListener("click", playGlobale);
+      stopGlobaleButton.addEventListener("click", fermaTrasporto);
+      aggiungiVoceButton.addEventListener("click", () => {
+        const traccia = aggiungiTraccia();
+        setMessaggio(`${traccia.nome}: aggiunta.`);
+      });
+      salvaProgettoButton.addEventListener("click", salvaProgetto);
+      caricaProgettoButton.addEventListener("click", () => fileProgettoInput.click());
+      fileProgettoInput.addEventListener("change", async () => {
+        try {
+          await caricaProgettoDaFile(fileProgettoInput.files[0]);
+        } catch (err) {
+          setMessaggio(err.message || "Progetto non caricato.");
+        } finally {
+          fileProgettoInput.value = "";
+        }
+      });
+      esportaWavButton.addEventListener("click", esportaWav);
+      esportaMp3Button.addEventListener("click", esportaMp3);
+      permessoButton.addEventListener("click", async () => {
+        try {
+          await assicuratiAudio();
+          setMessaggio("Microfono pronto.");
+        } catch (err) {
+          setStatoAudio("Permesso non concesso");
+          setMessaggio("Permesso microfono non concesso.");
+        }
+      });
+
+      creaInterfacciaTastiera();
+      for (let i = 0; i < TRACCE_INIZIALI; i += 1) {
+        aggiungiTraccia();
+      }
+      aggiornaTutteLeTracce();
+      avviaAnimazione();
+    })();
+  </script>
+</body>
+</html>
