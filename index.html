@@ -309,7 +309,7 @@
     }
 
     .countdown-rec.visibile {
-      display: grid;
+      display: none;
     }
 
     .count-numero {
@@ -402,12 +402,48 @@
       color: var(--bianco);
     }
 
+    .impostazioni-audio {
+      margin: 0 0 16px;
+    }
+
+    .impostazioni-audio summary {
+      min-height: 58px;
+      display: grid;
+      align-items: center;
+      padding: 0 18px;
+      border-radius: 20px;
+      background: var(--bianco);
+      color: var(--testo);
+      box-shadow: var(--ombra);
+      font-size: 0.92rem;
+      font-weight: 950;
+      text-transform: uppercase;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .impostazioni-audio summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .impostazioni-audio summary::after {
+      content: "+";
+      justify-self: end;
+      margin-top: -1.2em;
+      font-size: 1.5rem;
+      line-height: 1;
+    }
+
+    .impostazioni-audio[open] summary::after {
+      content: "-";
+    }
+
     .sync-mic {
       display: grid;
       grid-template-columns: minmax(220px, 1fr) minmax(260px, 1.4fr);
       gap: 16px;
       align-items: center;
-      margin: 0 0 16px;
+      margin: 10px 0 0;
       padding: 16px 18px;
       border: 2px solid #dedede;
       border-radius: 24px;
@@ -580,32 +616,38 @@
 
     .tracce {
       display: grid;
-      gap: 14px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
     }
 
     .traccia {
       --accento: var(--blu);
       display: grid;
-      grid-template-columns: 164px minmax(172px, 220px) minmax(230px, 1fr) 126px 142px;
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        "nome azioni"
+        "cerchio cerchio"
+        "rec volume";
       align-items: center;
-      gap: 16px;
-      padding: 18px;
+      gap: 10px;
+      padding: 12px;
       border: 2px solid #dedede;
-      border-radius: 30px;
+      border-radius: 22px;
       background: var(--bianco);
       box-shadow: var(--ombra);
     }
 
     .nome-gruppo {
+      grid-area: nome;
       display: grid;
-      grid-template-columns: 34px 1fr;
+      grid-template-columns: 24px 1fr;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
     }
 
     .luce {
-      width: 34px;
-      height: 34px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       background: var(--grigio);
       box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.8), 0 4px 12px rgba(0, 0, 0, 0.16);
@@ -649,22 +691,23 @@
 
     .nome h2 {
       margin: 0;
-      font-size: clamp(1.35rem, 2vw, 2rem);
+      font-size: clamp(1rem, 1.35vw, 1.35rem);
       line-height: 1;
       font-weight: 950;
       text-transform: uppercase;
     }
 
     .stato {
-      margin-top: 7px;
+      margin-top: 5px;
       color: #757575;
-      font-size: 0.78rem;
+      font-size: 0.64rem;
       font-weight: 950;
       text-transform: uppercase;
     }
 
     .record {
-      width: min(100%, 190px);
+      grid-area: rec;
+      width: 96px;
       aspect-ratio: 1;
       justify-self: center;
       display: grid;
@@ -672,19 +715,19 @@
       border-radius: 50%;
       background: var(--rosso);
       color: var(--bianco);
-      box-shadow: inset 0 -10px 0 rgba(0, 0, 0, 0.12), 0 16px 34px rgba(255, 59, 48, 0.28);
+      box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.12), 0 12px 24px rgba(255, 59, 48, 0.24);
       transition: transform 120ms ease, border-radius 160ms ease, background 120ms ease;
     }
 
     .record .icona-rec {
-      font-size: clamp(3rem, 5vw, 5rem);
+      font-size: 2.55rem;
       line-height: 1;
     }
 
     .record .testo-rec {
       display: block;
-      margin-top: 7px;
-      font-size: 0.88rem;
+      margin-top: 3px;
+      font-size: 0.65rem;
       font-weight: 950;
       text-transform: uppercase;
     }
@@ -695,6 +738,7 @@
     }
 
     .cerchio-wrap {
+      grid-area: cerchio;
       display: grid;
       place-items: center;
       min-width: 0;
@@ -702,7 +746,7 @@
 
     .cerchio {
       --progress: 0deg;
-      width: min(100%, 218px);
+      width: min(100%, 142px);
       aspect-ratio: 1;
       display: grid;
       place-items: center;
@@ -721,29 +765,49 @@
       border-radius: 50%;
       color: #555;
       background: #f8f8f8;
-      font-size: clamp(0.78rem, 1.2vw, 0.95rem);
+      font-size: 0.68rem;
       font-weight: 950;
       text-align: center;
       text-transform: uppercase;
     }
 
+    .centro-cerchio.count-num {
+      background: var(--giallo);
+      color: var(--testo);
+      font-size: clamp(1.9rem, 5vw, 3.2rem);
+      box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.08);
+    }
+
+    .centro-cerchio.rec {
+      background: var(--rosso);
+      color: var(--bianco);
+      animation: pulsa 760ms ease-in-out infinite;
+    }
+
+    .centro-cerchio.chiusura {
+      background: var(--blu);
+      color: var(--bianco);
+    }
+
     .azioni {
+      grid-area: azioni;
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
+      grid-template-columns: 42px 42px;
+      gap: 7px;
       justify-items: center;
+      justify-content: end;
     }
 
     .icon-btn {
-      width: 72px;
-      height: 72px;
+      width: 42px;
+      height: 42px;
       display: grid;
       place-items: center;
       border-radius: 50%;
       background: #ededed;
       color: var(--testo);
-      font-size: 2.1rem;
-      box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.06);
+      font-size: 1.35rem;
+      box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.06);
       transition: transform 120ms ease, background 120ms ease;
     }
 
@@ -757,46 +821,47 @@
     }
 
     .volume {
+      grid-area: volume;
       display: grid;
       grid-template-columns: 1fr;
-      gap: 10px;
+      gap: 6px;
       align-items: center;
       justify-items: center;
     }
 
     .volume label {
       color: #666;
-      font-size: 0.76rem;
+      font-size: 0.62rem;
       font-weight: 950;
       text-transform: uppercase;
     }
 
     .volume input[type="range"] {
-      width: 128px;
-      height: 36px;
+      width: 86px;
+      height: 28px;
     }
 
     .volume input[type="range"]::-webkit-slider-runnable-track {
-      height: 12px;
+      height: 9px;
       background: linear-gradient(90deg, #cfcfcf, var(--accento));
     }
 
     .volume input[type="range"]::-webkit-slider-thumb {
-      width: 32px;
-      height: 32px;
-      margin-top: -10px;
-      border-width: 5px;
+      width: 25px;
+      height: 25px;
+      margin-top: -8px;
+      border-width: 4px;
     }
 
     .volume input[type="range"]::-moz-range-track {
-      height: 12px;
+      height: 9px;
       background: linear-gradient(90deg, #cfcfcf, var(--accento));
     }
 
     .volume input[type="range"]::-moz-range-thumb {
-      width: 24px;
-      height: 24px;
-      border-width: 5px;
+      width: 21px;
+      height: 21px;
+      border-width: 4px;
     }
 
     .overlay {
@@ -868,6 +933,10 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
+      .tracce {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .countdown-rec {
         grid-template-columns: 1fr;
       }
@@ -886,39 +955,24 @@
       }
 
       .traccia {
-        grid-template-columns: 1fr 160px;
+        grid-template-columns: 1fr auto;
         grid-template-areas:
           "nome azioni"
-          "rec cerchio"
-          "volume cerchio";
-      }
-
-      .nome-gruppo {
-        grid-area: nome;
+          "cerchio cerchio"
+          "rec volume";
       }
 
       .record {
-        grid-area: rec;
-        width: 150px;
-      }
-
-      .cerchio-wrap {
-        grid-area: cerchio;
+        width: 96px;
       }
 
       .azioni {
-        grid-area: azioni;
-        grid-template-columns: 72px 72px;
+        grid-template-columns: 42px 42px;
         justify-content: end;
       }
 
-      .volume {
-        grid-area: volume;
-        justify-items: start;
-      }
-
       .volume input[type="range"] {
-        width: min(100%, 220px);
+        width: 86px;
       }
     }
 
@@ -934,6 +988,10 @@
       }
 
       .strumenti {
+        grid-template-columns: 1fr;
+      }
+
+      .tracce {
         grid-template-columns: 1fr;
       }
 
@@ -954,29 +1012,30 @@
         grid-template-columns: 1fr;
         grid-template-areas:
           "nome"
+          "azioni"
           "cerchio"
           "rec"
-          "volume"
-          "azioni";
+          "volume";
         padding: 16px;
       }
 
       .record {
-        width: min(70vw, 210px);
+        width: min(50vw, 150px);
       }
 
       .cerchio {
-        width: min(72vw, 230px);
+        width: min(58vw, 180px);
       }
 
       .azioni {
-        grid-template-columns: 82px 82px;
+        grid-template-columns: 54px 54px;
         justify-content: center;
       }
 
       .icon-btn {
-        width: 82px;
-        height: 82px;
+        width: 54px;
+        height: 54px;
+        font-size: 1.55rem;
       }
 
       .volume {
@@ -984,7 +1043,7 @@
       }
 
       .volume input[type="range"] {
-        width: min(86vw, 300px);
+        width: min(76vw, 260px);
       }
     }
   </style>
@@ -1017,7 +1076,7 @@
           <div>
             <div class="label" style="margin-bottom: 12px;">Metronomo</div>
             <label class="toggle" aria-label="Metronomo">
-              <input id="metronomo" type="checkbox" checked>
+              <input id="metronomo" type="checkbox">
               <span class="pista-toggle"></span>
             </label>
           </div>
@@ -1050,13 +1109,26 @@
       <input id="fileProgetto" type="file" accept="application/json,.json" hidden>
     </section>
 
-    <section class="sync-mic" aria-label="Sincronizzazione microfono">
-      <div class="label">
-        <span>Anticipo mic</span>
-        <span><span id="anticipoMicValore" class="sync-valore">70</span> ms</span>
-      </div>
-      <input id="anticipoMic" type="range" min="0" max="220" value="70" aria-label="Anticipo microfono">
-    </section>
+    <details class="impostazioni-audio">
+      <summary>Impostazioni audio</summary>
+      <section class="sync-mic" aria-label="Sincronizzazione microfono">
+        <div class="label">
+          <span>Anticipo mic</span>
+          <span><span id="anticipoMicValore" class="sync-valore">70</span> ms</span>
+        </div>
+        <input id="anticipoMic" type="range" min="0" max="220" value="70" aria-label="Anticipo microfono">
+      </section>
+      <section class="sync-mic" aria-label="Countdown iniziale">
+        <div class="label">
+          <span>Countdown iniziale</span>
+          <span class="sync-valore">3 sec</span>
+        </div>
+        <label class="toggle" aria-label="Countdown iniziale">
+          <input id="countdownIniziale" type="checkbox" checked>
+          <span class="pista-toggle"></span>
+        </label>
+      </section>
+    </details>
 
     <section class="tastiera-box" aria-label="Tastiera">
       <div class="tastiera-top">
@@ -1131,6 +1203,7 @@
       const fileProgettoInput = document.getElementById("fileProgetto");
       const anticipoMicInput = document.getElementById("anticipoMic");
       const anticipoMicValore = document.getElementById("anticipoMicValore");
+      const countdownInizialeInput = document.getElementById("countdownIniziale");
       const strumentoTastieraSelect = document.getElementById("strumentoTastiera");
       const ottavaGiuButton = document.getElementById("ottavaGiu");
       const ottavaSuButton = document.getElementById("ottavaSu");
@@ -1139,9 +1212,6 @@
       const tastieraEl = document.getElementById("tastiera");
       const messaggio = document.getElementById("messaggio");
       const countdownRec = document.getElementById("countdownRec");
-      const countNumero = document.getElementById("countNumero");
-      const countTesto = document.getElementById("countTesto");
-      const countSotto = document.getElementById("countSotto");
       const tracceEl = document.getElementById("tracce");
       const flashEl = document.getElementById("flash");
       const overlay = document.getElementById("overlay");
@@ -1186,6 +1256,8 @@
           eventiTastiera: [],
           faseOffset: 0,
           faseOffsetBattute: 0,
+          faseAvvioRegistrazione: 0,
+          faseAvvioBattute: 0,
           durataBattutaRegistrazione: 0,
           masterBattuteRegistrazione: 0,
           preservaFaseRegistrazione: false,
@@ -1193,6 +1265,7 @@
           stopFrame: 0,
           stopTimer: null,
           avvioRegistrazione: 0,
+          countdownIniziale: false,
           pezzi: [],
           frameRegistrati: 0,
           gain: null,
@@ -1218,6 +1291,18 @@
         return Math.max(1, Math.round(Math.max(0, durata) / durataBarra));
       }
 
+      function battuteDaDurata(durata, durataBarra) {
+        return Math.max(0.05, Math.max(0, durata) / durataBarra);
+      }
+
+      function testoBattute(valore) {
+        const battute = Number(valore) || 0;
+        if (Math.abs(battute - Math.round(battute)) < 0.04) {
+          return `${Math.max(0.1, Math.round(battute))} batt.`;
+        }
+        return `${battute.toFixed(1)} batt.`;
+      }
+
       function unitaQuantizzataInAvanti(durata, unita) {
         const tolleranza = 0.035;
         return Math.max(1, Math.ceil(Math.max(0, durata - tolleranza) / unita));
@@ -1230,7 +1315,7 @@
 
       function faseBattuteDaTempo(tempo, durataBarra, battuteLoop) {
         if (!inMarcia || !Number.isFinite(durataBarra) || durataBarra <= 0) return 0;
-        return modPositivo((tempo - avvioTrasporto) / durataBarra, Math.max(1, battuteLoop));
+        return modPositivo((tempo - avvioTrasporto) / durataBarra, Math.max(0.05, battuteLoop));
       }
 
       function faseOffsetTraccia(traccia) {
@@ -1245,7 +1330,18 @@
       }
 
       function durataMasterLoop() {
-        return Math.max(1, masterBattute || 1) * durataBattuta();
+        return Math.max(0.05, masterBattute || 1) * durataBattuta();
+      }
+
+      function giriFinestraDaDurata(durata, durataMaster) {
+        if (!Number.isFinite(durataMaster) || durataMaster <= 0) return 1;
+        const rapporto = Math.max(0.001, durata) / durataMaster;
+        const vicino = Math.max(1, Math.round(rapporto));
+        const tolleranzaRapporto = Math.min(0.12, Math.max(0.035, 0.5 / durataMaster));
+        if (Math.abs(rapporto - vicino) <= tolleranzaRapporto) {
+          return vicino;
+        }
+        return Math.max(1, Math.ceil(rapporto));
       }
 
       function prossimoConfineMaster(tempo) {
@@ -1257,7 +1353,7 @@
 
       function aggiornaMasterDaTracce() {
         const prima = tracce.find((traccia) => traccia.buffer && traccia.battute > 0);
-        masterBattute = prima ? Math.max(1, prima.battute) : 0;
+        masterBattute = prima ? Math.max(0.05, prima.battute) : 0;
       }
 
       function tracceInRegistrazione(escludi) {
@@ -1547,6 +1643,7 @@
         const registrazioni = [];
         tracce.forEach((traccia) => {
           if (!traccia.registra || traccia.fonteRegistrazione !== "tastiera") return;
+          if (inizioAssoluto < traccia.avvioRegistrazione) return;
 
           const evento = {
             nota: midi,
@@ -1699,6 +1796,13 @@
         traccia.gain.gain.setTargetAtTime(valore, audioCtx.currentTime, 0.015);
       }
 
+      function impostaCentroTraccia(traccia, testo, stato) {
+        traccia.el.centro.textContent = testo;
+        traccia.el.centro.classList.toggle("count-num", stato === "count");
+        traccia.el.centro.classList.toggle("rec", stato === "rec");
+        traccia.el.centro.classList.toggle("chiusura", stato === "chiusura");
+      }
+
       function aggiornaUITraccia(traccia) {
         const haAudio = Boolean(traccia.buffer);
         const inAttesa = traccia.registra && !traccia.stopFrame && audioCtx && audioCtx.currentTime < traccia.avvioRegistrazione;
@@ -1718,26 +1822,32 @@
 
         if (traccia.stopFrame) {
           traccia.el.stato.textContent = "Chiusura";
-          traccia.el.centro.textContent = "Chiusura";
+          impostaCentroTraccia(traccia, "Stop", "chiusura");
         } else if (inAttesa) {
           traccia.el.stato.textContent = "Pronta a partire";
-          traccia.el.centro.textContent = "Attesa";
+          if (traccia.countdownIniziale && audioCtx) {
+            const inizioCountdown = traccia.avvioRegistrazione - 3;
+            const numero = Math.min(3, Math.max(1, Math.floor(audioCtx.currentTime - inizioCountdown) + 1));
+            impostaCentroTraccia(traccia, String(numero), "count");
+          } else {
+            impostaCentroTraccia(traccia, "Attesa", "count");
+          }
         } else if (traccia.registra) {
           traccia.el.stato.textContent = traccia.fonteRegistrazione === "tastiera" ? "Registrazione tastiera" : "Registrazione microfono";
-          traccia.el.centro.textContent = traccia.fonteRegistrazione === "tastiera" ? "Tastiera" : "Registra";
+          impostaCentroTraccia(traccia, "REC", "rec");
         } else if (!haAudio) {
           traccia.el.stato.textContent = "Vuoto";
-          traccia.el.centro.textContent = "Vuoto";
+          impostaCentroTraccia(traccia, "Vuoto");
           traccia.el.cerchio.style.setProperty("--progress", "0deg");
         } else if (traccia.muto) {
           traccia.el.stato.textContent = "Silenzio";
-          traccia.el.centro.textContent = `${traccia.battute} batt.`;
+          impostaCentroTraccia(traccia, testoBattute(traccia.battute));
         } else if (inMarcia) {
           traccia.el.stato.textContent = "In riproduzione";
-          traccia.el.centro.textContent = `${traccia.battute} batt.`;
+          impostaCentroTraccia(traccia, testoBattute(traccia.battute));
         } else {
           traccia.el.stato.textContent = "Pronto";
-          traccia.el.centro.textContent = `${traccia.battute} batt.`;
+          impostaCentroTraccia(traccia, testoBattute(traccia.battute));
         }
       }
 
@@ -1764,38 +1874,7 @@
           return;
         }
 
-        const ora = audioCtx.currentTime;
-        const beat = durataBeat();
-        const inChiusura = Boolean(traccia.stopFrame);
-        const inAttesa = traccia.registra && !inChiusura && ora < traccia.avvioRegistrazione;
-        const inRegistrazione = traccia.registra && !inChiusura && !inAttesa;
-
-        mostraCountdownRegistrazione(true);
-        countdownRec.classList.toggle("registra", inRegistrazione);
-        countdownRec.classList.toggle("chiusura", inChiusura);
-
-        if (inChiusura) {
-          const stopTempo = traccia.stopFrame / audioCtx.sampleRate;
-          const battiti = Math.max(1, Math.ceil(Math.max(0, stopTempo - ora) / beat));
-          countNumero.textContent = String(battiti);
-          countTesto.textContent = "Chiusura allineata";
-          countSotto.textContent = battiti === 1
-            ? `${traccia.nome}: entra al prossimo battito utile`
-            : `${traccia.nome}: entra tra ${battiti} battiti`;
-        } else if (inAttesa) {
-          const battiti = Math.max(1, Math.ceil((traccia.avvioRegistrazione - ora) / beat));
-          countNumero.textContent = String(battiti);
-          countTesto.textContent = "Preparati";
-          countSotto.textContent = battiti === 1
-            ? `${traccia.nome}: registra al prossimo battito`
-            : `${traccia.nome}: registra tra ${battiti} battiti`;
-        } else {
-          const battitiRegistrati = Math.max(1, Math.floor((ora - traccia.avvioRegistrazione) / beat) + 1);
-          countNumero.textContent = "REC";
-          countTesto.textContent = "Registra ora";
-          countSotto.textContent = `${traccia.nome}: battito ${battitiRegistrati}, premi Ferma per chiudere allineato`;
-        }
-
+        mostraCountdownRegistrazione(false);
         aggiornaUITraccia(traccia);
       }
 
@@ -1976,6 +2055,84 @@
         return avvioTrasporto + Math.max(0, passate) * d;
       }
 
+      function copiaPCMRegistrato(traccia, lunghezza) {
+        const raw = new Float32Array(lunghezza);
+        let offset = 0;
+
+        for (const pezzo of traccia.pezzi) {
+          if (offset >= lunghezza) break;
+          const n = Math.min(pezzo.length, lunghezza - offset);
+          raw.set(pezzo.subarray(0, n), offset);
+          offset += n;
+        }
+
+        return raw;
+      }
+
+      function applicaAnticipoMicrofono(raw) {
+        const pcm = new Float32Array(raw.length);
+        const anticipoFrame = Math.min(raw.length - 1, Math.max(0, Math.round((anticipoMicMs / 1000) * audioCtx.sampleRate)));
+        if (anticipoFrame > 0) {
+          pcm.set(raw.subarray(anticipoFrame));
+        } else {
+          pcm.set(raw);
+        }
+        return pcm;
+      }
+
+      function scriviPCMInFinestra(destinazione, sorgente, offsetFrame) {
+        if (!destinazione.length || !sorgente.length) return;
+        let pos = modPositivo(offsetFrame, destinazione.length);
+
+        const campioni = Math.min(sorgente.length, destinazione.length);
+        for (let i = 0; i < campioni; i += 1) {
+          destinazione[pos] += sorgente[i];
+          pos += 1;
+          if (pos >= destinazione.length) pos = 0;
+        }
+
+        for (let i = 0; i < destinazione.length; i += 1) {
+          destinazione[i] = Math.max(-1, Math.min(1, destinazione[i]));
+        }
+      }
+
+      function creaBufferDaPCM(pcm, sampleRate) {
+        const buffer = audioCtx.createBuffer(1, Math.max(1, pcm.length), sampleRate);
+        buffer.copyToChannel(pcm, 0);
+        return buffer;
+      }
+
+      function eventiTastieraFinali(traccia, durataFinale) {
+        return traccia.eventiTastiera
+          .map((evento) => ({
+            ...evento,
+            inizio: Math.max(0, evento.inizio),
+            durata: evento.durata == null ? durataFinale - Math.max(0, evento.inizio) : evento.durata
+          }))
+          .filter((evento) => evento.inizio < durataFinale && evento.durata > 0.01);
+      }
+
+      function eventiTastieraInFinestra(eventi, durataFinestra, faseAvvio) {
+        const sistemati = [];
+        eventi.forEach((evento) => {
+          let inizio = faseAvvio + evento.inizio;
+          let durata = Math.max(0, evento.durata || 0);
+          let guardia = 0;
+
+          while (durata > 0.01 && guardia < 64) {
+            const fase = modPositivo(inizio, durataFinestra);
+            const parte = Math.min(durata, durataFinestra - fase);
+            if (parte > 0.01) {
+              sistemati.push({ ...evento, inizio: fase, durata: parte });
+            }
+            inizio += parte;
+            durata -= parte;
+            guardia += 1;
+          }
+        });
+        return sistemati;
+      }
+
       async function toggleRegistrazione(traccia) {
         if (traccia.registra) {
           fermaRegistrazione(traccia);
@@ -2027,18 +2184,20 @@
         traccia.durataBattutaRegistrazione = durataBattuta();
         traccia.masterBattuteRegistrazione = masterBattute;
         const primoLoop = masterBattute <= 0 && !esistonoLoop(traccia);
+        const usaCountdownIniziale = primoLoop && countdownInizialeInput.checked;
         traccia.preservaFaseRegistrazione = false;
         traccia.registra = true;
+        traccia.countdownIniziale = usaCountdownIniziale;
 
-        const inizio = primoLoop
-          ? audioCtx.currentTime
-          : prossimoConfineMaster(audioCtx.currentTime + 0.06);
+        const inizio = audioCtx.currentTime + (usaCountdownIniziale ? 3 : 0);
         if (primoLoop) {
           avvioTrasporto = inizio;
           prossimoBattito = 0;
         }
         traccia.avvioRegistrazione = inizio;
         traccia.avvioFrame = Math.round(inizio * audioCtx.sampleRate);
+        traccia.faseAvvioBattute = primoLoop ? 0 : faseBattuteDaTempo(inizio, traccia.durataBattutaRegistrazione, masterBattute);
+        traccia.faseAvvioRegistrazione = traccia.faseAvvioBattute * traccia.durataBattutaRegistrazione;
 
         if (fonte === "tastiera") {
           tastiAttivi.forEach((attiva) => {
@@ -2055,25 +2214,42 @@
 
         aggiornaUITraccia(traccia);
         aggiornaCountdownRegistrazione();
-        const parteSubito = inizio - audioCtx.currentTime < 0.12;
-        setMessaggio(parteSubito
-          ? `${traccia.nome}: registra ora.`
-          : `${traccia.nome}: preparati, parte allineata.`);
+        setMessaggio(primoLoop
+          ? (usaCountdownIniziale ? `${traccia.nome}: countdown 3 secondi.` : `${traccia.nome}: registra il giro master.`)
+          : `${traccia.nome}: registra sopra il giro.`);
       }
 
       function fermaRegistrazione(traccia) {
         if (!audioCtx || !traccia.registra || traccia.stopFrame) return;
 
+        if (audioCtx.currentTime < traccia.avvioRegistrazione) {
+          traccia.registra = false;
+          traccia.countdownIniziale = false;
+          traccia.pezzi = [];
+          traccia.eventiTastiera = [];
+          traccia.frameRegistrati = 0;
+          traccia.stopFrame = 0;
+          traccia.avvioFrame = 0;
+          aggiornaUITraccia(traccia);
+          aggiornaCountdownRegistrazione();
+          setMessaggio(`${traccia.nome}: countdown annullato.`);
+          return;
+        }
+
         const durataBarra = traccia.durataBattutaRegistrazione || durataBattuta();
-        const durataGrezza = Math.max(0, audioCtx.currentTime - traccia.avvioRegistrazione);
+        const durataGrezza = Math.max(0.08, audioCtx.currentTime - traccia.avvioRegistrazione);
         const masterRegistrazione = Math.max(0, Number(traccia.masterBattuteRegistrazione) || 0);
         const battute = masterRegistrazione > 0
-          ? unitaQuantizzataInAvanti(durataGrezza, masterRegistrazione * durataBarra) * masterRegistrazione
-          : unitaQuantizzataInAvanti(durataGrezza, durataBarra);
-        const durataEsatta = battute * durataBarra;
+          ? masterRegistrazione
+          : battuteDaDurata(durataGrezza, durataBarra);
         traccia.battute = battute;
-        traccia.stopFrame = traccia.avvioFrame + Math.max(1, Math.round(durataEsatta * audioCtx.sampleRate));
-        setMessaggio(`${traccia.nome}: chiusura su ${battute} ${battute === 1 ? "battuta" : "battute"}.`);
+        traccia.stopFrame = Math.max(
+          traccia.avvioFrame + 1,
+          Math.round(audioCtx.currentTime * audioCtx.sampleRate)
+        );
+        setMessaggio(masterRegistrazione > 0
+          ? `${traccia.nome}: chiusura, rientra nel giro master.`
+          : `${traccia.nome}: chiusura del giro master.`);
         aggiornaUITraccia(traccia);
 
         if (traccia.fonteRegistrazione === "tastiera") {
@@ -2097,125 +2273,74 @@
         const durataBarra = traccia.durataBattutaRegistrazione || durataBattuta();
         const chiusuraTempo = traccia.avvioRegistrazione + durataFinale;
         const primoLoop = masterBattute <= 0 && !esistonoLoop(traccia);
+        const masterRegistrazione = Math.max(0, Number(traccia.masterBattuteRegistrazione) || 0);
+        const battuteMasterBase = Math.max(0.05, masterRegistrazione || masterBattute || battuteDaDurata(durataFinale, durataBarra));
+        const durataMasterBase = battuteMasterBase * durataBarra;
+        const faseAvvio = primoLoop ? 0 : Math.max(0, Number(traccia.faseAvvioBattute) || 0) * durataBarra;
+        const giriFinestra = primoLoop ? 1 : giriFinestraDaDurata(durataFinale, durataMasterBase);
+        const battuteLoop = primoLoop ? battuteDaDurata(durataFinale, durataBarra) : battuteMasterBase * giriFinestra;
+        const durataLoop = battuteLoop * durataBarra;
+        const lunghezzaLoop = Math.max(1, Math.round(durataLoop * audioCtx.sampleRate));
 
-        if (traccia.fonteRegistrazione === "tastiera") {
-          const eventiGrezzi = traccia.eventiTastiera
-            .map((evento) => ({
-              ...evento,
-              inizio: Math.max(0, evento.inizio),
-              durata: evento.durata == null ? durataFinale - Math.max(0, evento.inizio) : evento.durata
-            }))
-            .filter((evento) => evento.inizio < durataFinale && evento.durata > 0.01);
-          const primoEvento = eventiGrezzi.length
-            ? eventiGrezzi.reduce((min, evento) => Math.min(min, evento.inizio), Infinity)
-            : 0;
-          const primoEventoAssoluto = traccia.avvioRegistrazione + primoEvento;
-          const taglioInizio = primoLoop ? primoEvento : 0;
-          const durataDaTaglio = Math.max(0.05, durataFinale - taglioInizio);
-          const battuteRender = primoLoop || traccia.masterBattuteRegistrazione <= 0
-            ? unitaQuantizzataInAvanti(durataDaTaglio, durataBarra)
-            : Math.max(traccia.masterBattuteRegistrazione, traccia.battute || traccia.masterBattuteRegistrazione);
-          const lunghezzaRender = Math.max(1, Math.round(battuteRender * durataBarra * audioCtx.sampleRate));
-          const durataRender = lunghezzaRender / audioCtx.sampleRate;
-          const loopChiusuraTempo = traccia.avvioRegistrazione + taglioInizio + durataRender;
-          if (primoLoop && primoEventoAssoluto > 0) {
-            avvioTrasporto = primoEventoAssoluto;
-            prossimoBattito = Math.max(0, Math.floor((audioCtx.currentTime - avvioTrasporto) / durataBeat()) + 1);
-          }
-          traccia.faseOffsetBattute = 0;
-          traccia.faseOffset = 0;
-          const eventi = eventiGrezzi
-            .map((evento) => ({
-              ...evento,
-              inizio: Math.max(0, evento.inizio - taglioInizio),
-              durata: Math.min(evento.durata, Math.max(0, durataRender - Math.max(0, evento.inizio - taglioInizio)))
-            }))
-            .filter((evento) => evento.durata > 0.01);
-
+        function completa(buffer, messaggioPronto) {
+          traccia.buffer = buffer;
+          traccia.battute = battuteLoop;
+          if (primoLoop || masterBattute <= 0) masterBattute = battuteLoop;
           traccia.registra = false;
           traccia.pezzi = [];
           traccia.eventiTastiera = [];
           traccia.frameRegistrati = 0;
           traccia.stopFrame = 0;
-          aggiornaUITraccia(traccia);
-          setMessaggio(`${traccia.nome}: creo il giro tastiera.`);
+          traccia.countdownIniziale = false;
+          traccia.faseOffsetBattute = 0;
+          traccia.faseOffset = 0;
+          traccia.faseAvvioBattute = 0;
+          traccia.faseAvvioRegistrazione = 0;
+          traccia.durataBattutaRegistrazione = 0;
+          traccia.masterBattuteRegistrazione = 0;
+          traccia.preservaFaseRegistrazione = false;
 
-          renderTastieraBuffer(eventi, lunghezzaRender, audioCtx.sampleRate)
+          if (inMarcia) {
+            avviaLoopNaturaleDopoRegistrazione(traccia, chiusuraTempo);
+          }
+
+          avviaRegistrazioneInAttesa();
+          aggiornaUITraccia(traccia);
+          setMessaggio(messaggioPronto);
+        }
+
+        if (traccia.fonteRegistrazione === "tastiera") {
+          const eventiGrezzi = eventiTastieraFinali(traccia, durataFinale);
+          const eventi = primoLoop
+            ? eventiGrezzi
+            : eventiTastieraInFinestra(eventiGrezzi, durataLoop, faseAvvio);
+
+          aggiornaUITraccia(traccia);
+          setMessaggio(primoLoop ? `${traccia.nome}: creo il giro master.` : `${traccia.nome}: inserisco nel giro master.`);
+
+          renderTastieraBuffer(eventi, lunghezzaLoop, audioCtx.sampleRate)
             .then((buffer) => {
-              traccia.buffer = buffer;
-              traccia.battute = battuteRender;
-              if (masterBattute <= 0) masterBattute = battuteRender;
-              traccia.durataBattutaRegistrazione = 0;
-              traccia.masterBattuteRegistrazione = 0;
-              traccia.preservaFaseRegistrazione = false;
-              if (inMarcia) {
-                avviaLoopAllineatoDopoRegistrazione(traccia, loopChiusuraTempo);
-              }
-              avviaRegistrazioneInAttesa();
-              aggiornaUITraccia(traccia);
-              setMessaggio(eventi.length
-                ? `${traccia.nome}: giro tastiera pronto dalla prima nota.`
+              completa(buffer, eventi.length
+                ? `${traccia.nome}: giro tastiera pronto.`
                 : `${traccia.nome}: giro tastiera vuoto.`);
             })
             .catch(() => {
-              traccia.buffer = audioCtx.createBuffer(1, lunghezzaRender, audioCtx.sampleRate);
-              traccia.battute = battuteRender;
-              if (masterBattute <= 0) masterBattute = battuteRender;
-              traccia.durataBattutaRegistrazione = 0;
-              traccia.masterBattuteRegistrazione = 0;
-              traccia.preservaFaseRegistrazione = false;
-              if (inMarcia) {
-                avviaLoopAllineatoDopoRegistrazione(traccia, loopChiusuraTempo);
-              }
-              avviaRegistrazioneInAttesa();
-              aggiornaUITraccia(traccia);
-              setMessaggio(`${traccia.nome}: giro tastiera vuoto.`);
+              completa(audioCtx.createBuffer(1, lunghezzaLoop, audioCtx.sampleRate), `${traccia.nome}: giro tastiera vuoto.`);
             });
           return;
         }
 
-        const pcm = new Float32Array(lunghezza);
-        const raw = new Float32Array(lunghezza);
-        let offset = 0;
-
-        for (const pezzo of traccia.pezzi) {
-          if (offset >= lunghezza) break;
-          const n = Math.min(pezzo.length, lunghezza - offset);
-          raw.set(pezzo.subarray(0, n), offset);
-          offset += n;
+        const raw = copiaPCMRegistrato(traccia, lunghezza);
+        const pcm = applicaAnticipoMicrofono(raw);
+        const loopPCM = primoLoop ? pcm : new Float32Array(lunghezzaLoop);
+        if (!primoLoop) {
+          const offsetFrame = Math.round(faseAvvio * audioCtx.sampleRate);
+          scriviPCMInFinestra(loopPCM, pcm, offsetFrame);
         }
 
-        const anticipoFrame = Math.min(lunghezza - 1, Math.max(0, Math.round((anticipoMicMs / 1000) * audioCtx.sampleRate)));
-        if (anticipoFrame > 0) {
-          pcm.set(raw.subarray(anticipoFrame));
-        } else {
-          pcm.set(raw);
-        }
-
-        const buffer = audioCtx.createBuffer(1, lunghezza, audioCtx.sampleRate);
-        buffer.copyToChannel(pcm, 0);
-
-        traccia.buffer = buffer;
-        traccia.battute = Math.max(1, traccia.battute || battuteQuantizzate(lunghezza / audioCtx.sampleRate, durataBarra));
-        if (masterBattute <= 0) masterBattute = traccia.battute;
-        traccia.registra = false;
-        traccia.pezzi = [];
-        traccia.eventiTastiera = [];
-        traccia.frameRegistrati = 0;
-        traccia.stopFrame = 0;
-        traccia.faseOffsetBattute = 0;
-        traccia.faseOffset = 0;
-        traccia.durataBattutaRegistrazione = 0;
-        traccia.masterBattuteRegistrazione = 0;
-        traccia.preservaFaseRegistrazione = false;
-
-        if (inMarcia) {
-          avviaLoopAllineatoDopoRegistrazione(traccia, chiusuraTempo);
-        }
-
-        avviaRegistrazioneInAttesa();
-        aggiornaUITraccia(traccia);
-        setMessaggio(`${traccia.nome}: giro pronto.`);
+        completa(creaBufferDaPCM(loopPCM, audioCtx.sampleRate), primoLoop
+          ? `${traccia.nome}: giro master pronto.`
+          : `${traccia.nome}: frase libera agganciata al master.`);
       }
 
       function avviaTrasporto() {
@@ -2328,19 +2453,29 @@
       }
 
       function durataLoopTraccia(traccia) {
-        return Math.max(durataBattuta(), traccia.battute * durataBattuta());
+        return Math.max(0.05, (Number(traccia.battute) || 0) * durataBattuta());
       }
 
-      function avviaLoopAllineatoDopoRegistrazione(traccia, chiusuraTempo) {
+      function avviaLoopNaturaleDopoRegistrazione(traccia, chiusuraTempo) {
         if (!audioCtx || !inMarcia || !traccia.buffer) return;
 
         const loopDurata = durataLoopTraccia(traccia);
         const ora = audioCtx.currentTime;
-        const riferimento = Math.max(ora + 0.012, chiusuraTempo);
-        const quando = prossimoConfineLoop(riferimento, loopDurata, faseOffsetTraccia(traccia));
+        const quando = Math.max(ora + 0.012, chiusuraTempo);
+        const fase = modPositivo(quando - avvioTrasporto - faseOffsetTraccia(traccia), loopDurata);
+        const durataParziale = Math.max(0, loopDurata - fase);
 
-        traccia.schedulatoFino = quando;
-        schedulaTraccia(traccia, ora, quando + 0.02);
+        if (durataParziale > 0.025 && Math.abs(loopDurata - traccia.buffer.duration) < 0.03) {
+          const sorgente = audioCtx.createBufferSource();
+          sorgente.buffer = traccia.buffer;
+          sorgente.connect(traccia.gain);
+          sorgente.start(quando, Math.min(fase, Math.max(0, traccia.buffer.duration - 0.001)), durataParziale);
+          sorgente.stop(quando + durataParziale + 0.025);
+          traccia.sorgenti.push({ nodo: sorgente, fine: quando + durataParziale + 0.04 });
+        }
+
+        traccia.schedulatoFino = prossimoConfineLoop(quando + 0.02, loopDurata, faseOffsetTraccia(traccia));
+        schedulaTraccia(traccia, ora, traccia.schedulatoFino + 0.02);
       }
 
       function prossimoConfineLoop(tempo, loopDurata, faseOffset = 0) {
@@ -2465,9 +2600,12 @@
         traccia.eventiTastiera = [];
         traccia.frameRegistrati = 0;
         traccia.stopFrame = 0;
+        traccia.countdownIniziale = false;
         traccia.schedulatoFino = 0;
         traccia.faseOffset = 0;
         traccia.faseOffsetBattute = 0;
+        traccia.faseAvvioRegistrazione = 0;
+        traccia.faseAvvioBattute = 0;
         traccia.preservaFaseRegistrazione = false;
         aggiornaMasterDaTracce();
         aggiornaUITraccia(traccia);
@@ -2492,9 +2630,10 @@
 
         tracce.forEach((traccia) => {
           if (traccia.registra) {
-            const base = durataBattuta();
-            const daInizio = Math.max(0, ora - traccia.avvioRegistrazione);
-            const fase = modPositivo(daInizio, base) / base;
+            const base = masterBattute > 0 ? durataMasterLoop() : Math.max(0.25, ora - traccia.avvioRegistrazione);
+            const fase = masterBattute > 0
+              ? modPositivo(ora - avvioTrasporto, base) / base
+              : 1;
             traccia.el.cerchio.style.setProperty("--progress", `${Math.round(fase * 360)}deg`);
             return;
           }
@@ -2580,6 +2719,7 @@
           bpm: bpm(),
           metronomo: metronomoInput.checked,
           anticipoMicMs,
+          countdownIniziale: countdownInizialeInput.checked,
           masterBattute,
           tastiera: {
             strumento: strumentoTastieraSelect.value,
@@ -2632,6 +2772,7 @@
         bpmInput.value = Math.min(180, Math.max(60, Number(progetto.bpm) || 120));
         bpmValore.textContent = bpmInput.value;
         metronomoInput.checked = Boolean(progetto.metronomo);
+        countdownInizialeInput.checked = progetto.countdownIniziale !== false;
         masterBattute = Math.max(0, Number(progetto.masterBattute) || 0);
         if (progetto.anticipoMicMs != null) {
           anticipoMicMs = Math.min(220, Math.max(0, Number(progetto.anticipoMicMs) || 0));
@@ -2695,7 +2836,14 @@
       }
 
       function durataExportBattute(attive) {
-        return attive.reduce((totale, traccia) => minimoComuneMultiplo(totale, Math.max(1, traccia.battute || 1)), 1);
+        if (masterBattute > 0) {
+          const giriTotali = attive.reduce((totale, traccia) => {
+            const giri = Math.max(1, Math.round((Number(traccia.battute) || masterBattute) / masterBattute));
+            return minimoComuneMultiplo(totale, giri);
+          }, 1);
+          return masterBattute * giriTotali;
+        }
+        return attive.reduce((totale, traccia) => Math.max(totale, Number(traccia.battute) || 0), 1);
       }
 
       async function renderMixOffline() {
@@ -2719,7 +2867,7 @@
         const offline = new OfflineAudioContext(2, frame, sampleRate);
 
         attive.forEach((traccia) => {
-          const loopDurata = Math.max(durataBattuta(), (traccia.battute || 1) * durataBattuta());
+          const loopDurata = Math.max(0.05, (Number(traccia.battute) || 1) * durataBattuta());
           const offset = modPositivo(faseOffsetTraccia(traccia), loopDurata);
           const gain = offline.createGain();
           gain.gain.value = traccia.volume;
